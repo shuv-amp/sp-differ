@@ -29,7 +29,10 @@ Start here:
 - `docs/NORMALIZATION.md`
 - `docs/TESTING.md`
 - `docs/ROADMAP.md`
+- `docs/DEVELOPMENT.md`
 - `docs/RUNNER_CONTRACT.md`
+- `docs/ERROR_MAPPING.md`
+- `docs/WORKER_INTERFACE.md`
 - `spec/FORMAT.md`
 - `spec/ERRORS.md`
 - `spec/EXAMPLE.md`
@@ -44,6 +47,24 @@ Start here:
 - A strict normalization contract to avoid false positives.
 - Reproducible artifacts for every mismatch.
 - A growing corpus of regression cases.
+
+---
+
+## Quick Start (Current)
+
+The current repo includes a compiled runner and a worker stub that validate the case and output formats.
+
+```bash
+make smoke
+```
+
+Expected output:
+
+```text
+OK: output valid
+```
+
+For more detail, see `docs/DEVELOPMENT.md`.
 
 ---
 

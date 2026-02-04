@@ -10,4 +10,9 @@ Current scripts:
 Make targets:
 - `make worker` builds the C++ worker stub.
 - `make runner` builds the compiled runner.
+- `make compare` builds the compiled differential runner.
+- `make check` runs core I/O, case parser, and header validation smoke tests.
 - `make smoke` runs the end-to-end smoke check with the compiled runner.
+- `make worker-rust` builds the Rust worker stub and copies the shared library into `build/`.
+- `make smoke-rust` runs the compiled runner against the Rust worker stub.
+- `make diff` runs the differential runner against the C++ and Rust stubs.
