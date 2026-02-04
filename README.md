@@ -21,10 +21,16 @@ SP-DIFFER makes those failures deterministic, explainable, and fixable.
 
 ## What This Repo Is Right Now
 
-This repository currently ships project documentation and a clear plan. Implementation is staged and will land in phases.
+This repository currently ships project documentation and a scaffolded structure for the future implementation. The code is staged and will land in phases.
 
 Start here:
 - `docs/PROJECT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/NORMALIZATION.md`
+- `docs/TESTING.md`
+- `docs/ROADMAP.md`
+- `spec/FORMAT.md`
+- `spec/ERRORS.md`
 - `SP-DIFFER_PROJECT_SPECIFICATION.md`
 
 ---
@@ -56,6 +62,19 @@ flowchart LR
 Input Generator -> Normalizer -> Worker: C++ -> Comparator -> Report + Repro Case
                                -> Worker: Rust ->
 ```
+
+---
+
+## Repository Layout
+
+- `docs/` Project documents and rationale.
+- `spec/` Canonical case and error format definitions.
+- `src/` Future implementation of core logic, CLI, runner, and reporter.
+- `workers/` Per-implementation adapters for C++ and Rust.
+- `ffi/` Stable C ABI boundary for worker integration.
+- `tests/` Vectors and regression cases.
+- `fuzz/` Fuzzing harnesses and corpus.
+- `scripts/` Helper scripts for repeatable workflows.
 
 ---
 
