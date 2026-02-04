@@ -7,3 +7,6 @@ Planned responsibilities:
 - Call the implementation under test.
 - Serialize outputs using the shared schema.
 - Return explicit error codes on invalid inputs.
+
+Current stub:
+- `sp_differ_worker.cpp` validates the v1 case format and returns an empty `ok` payload. It is for interface validation only.
