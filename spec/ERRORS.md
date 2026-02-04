@@ -11,3 +11,5 @@ This document defines the error codes emitted by workers. The codes are strict a
 | invalid_pubkey | 0x04 | Invalid or non-canonical public key. |
 | tweak_out_of_range | 0x05 | Tagged hash interpreted as a scalar is invalid. |
 | internal | 0xFF | Unexpected failure in the worker. |
+
+The output `status` byte uses the numeric values defined in `ffi/sp_differ.h`. See `docs/ERROR_MAPPING.md` for the stable mapping table.

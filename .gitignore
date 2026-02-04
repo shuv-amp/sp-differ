@@ -8,6 +8,7 @@
 
 # Rust
 /target/
+workers/rust/target/
 **/*.rs.bk
 
 # C/C++

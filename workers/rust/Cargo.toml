@@ -1,0 +1,11 @@
+[package]
+name = "sp-differ-worker"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sp_differ_worker_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+libc = "0.2"
