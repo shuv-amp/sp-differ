@@ -31,6 +31,7 @@ Start here:
 - `docs/ROADMAP.md`
 - `spec/FORMAT.md`
 - `spec/ERRORS.md`
+- `spec/EXAMPLE.md`
 - `SP-DIFFER_PROJECT_SPECIFICATION.md`
 
 ---
