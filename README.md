@@ -29,9 +29,11 @@ Start here:
 - `docs/NORMALIZATION.md`
 - `docs/TESTING.md`
 - `docs/ROADMAP.md`
+- `docs/RUNNER_CONTRACT.md`
 - `spec/FORMAT.md`
 - `spec/ERRORS.md`
 - `spec/EXAMPLE.md`
+- `spec/OUTPUT_EXAMPLE.md`
 - `SP-DIFFER_PROJECT_SPECIFICATION.md`
 
 ---
