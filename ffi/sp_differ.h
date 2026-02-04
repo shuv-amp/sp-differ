@@ -47,6 +47,9 @@ uint32_t sp_differ_worker_api_version(void);
  * Ownership:
  *   - The worker owns the output buffer and must free it via
  *     sp_differ_worker_free.
+ *
+ * Returns:
+ *   - 0 on success, nonzero on failure (no output is produced).
  */
 int sp_differ_worker_run(const uint8_t* input, size_t input_len,
                          uint8_t** output, size_t* output_len);
