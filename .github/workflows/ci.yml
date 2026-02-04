@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "scaffold", "codex/*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and smoke test
+        run: make smoke
