@@ -15,7 +15,6 @@ DEFAULT_TARGETS = [
     "SECURITY.md",
     "docs",
     "scripts/README.md",
-    "scripts/bip352_research_scorecard.py",
     ".github/PULL_REQUEST_TEMPLATE.md",
 ]
 
