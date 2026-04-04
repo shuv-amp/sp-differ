@@ -1,0 +1,32 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": false,
+  "found_output_count": 2323,
+  "found_outputs": [],
+  "input_hash": "2c4d711ad10654f4d19b0df80ab0202cdf6696bfafeef2345e9d485e3872971c",
+  "input_pubkey_sum": "02bca87f72e604e8850064552bedf380ca4584227057efe12a6cc238470658aaa3",
+  "input_pubkeys": [
+    "02bca87f72e604e8850064552bedf380ca4584227057efe12a6cc238470658aaa3"
+  ],
+  "kind": "receive",
+  "notes": [
+    "count_only_expectation",
+    "scan_limit_reached"
+  ],
+  "receiving_addresses": [
+    "sp1qqtnvg7hxjck9ag24naytgd7pjwsmevwh95ydwht58w3uh7uw0ta7kq6xcdal4dazgg2txp472hdz4svms98328lqdflmpxppmc6ykamcrv9s7w9g",
+    "sp1qqtnvg7hxjck9ag24naytgd7pjwsmevwh95ydwht58w3uh7uw0ta7kqmk4a3pm24z0yepw6aw27pku56md0hq5ace0l3p3jstkqaajwrsjqc5dde5"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "03abe0979dbbe4e1bb2cd2e06524a411c0b829c1d2282052da817b46f1d6e598e4",
+  "source": {
+    "case_index": 26,
+    "comment": "Maximum per-group recipient limit K_max is exceeded (2324 matches): sending fails, receiver doesn't scan beyond limit",
+    "entry_index": 0,
+    "id": "official_case_26_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "022c333a8938ca0c7433c5e39d440b469f58374d0363b5bffc66aca1cc10d7b609"
+}

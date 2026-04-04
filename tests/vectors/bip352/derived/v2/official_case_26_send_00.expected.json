@@ -1,0 +1,34 @@
+{
+  "acceptable_output_sets": [
+    []
+  ],
+  "case_format_version": 2,
+  "input_hash": "2c4d711ad10654f4d19b0df80ab0202cdf6696bfafeef2345e9d485e3872971c",
+  "input_private_key_sum": "0000000000000000000000000000000000000000000000000000000000001337",
+  "input_pubkeys": [
+    "02bca87f72e604e8850064552bedf380ca4584227057efe12a6cc238470658aaa3"
+  ],
+  "kind": "send",
+  "notes": [
+    "per_group_recipient_limit_exceeded"
+  ],
+  "output_count_options": [
+    0
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "recipient_limit_exceeded",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "02e6c47ae6962c5ea1559f48b437c193a1bcb1d72d08d75d743ba3cbfb8e7afbeb",
+      "shared_secret": null
+    }
+  ],
+  "source": {
+    "case_index": 26,
+    "comment": "Maximum per-group recipient limit K_max is exceeded (2324 matches): sending fails, receiver doesn't scan beyond limit",
+    "entry_index": 0,
+    "id": "official_case_26_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

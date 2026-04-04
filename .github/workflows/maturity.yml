@@ -1,0 +1,109 @@
+name: Nightly Maturity Evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 2 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  DEFAULT_PYTHON_VERSION: "3.11"
+
+jobs:
+  maturity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsecp256k1-dev
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: adapters/go_bip352/go.mod
+
+      - name: Live release verification
+        run: make verify-release-live
+
+      - name: Full benchmark matrix
+        run: make bench-adapters BENCH_ITERATIONS=3 BENCH_WARMUP=1
+
+      - name: Refresh local release report
+        run: make release-report
+
+      - name: Generate release evidence manifest
+        run: make release-evidence
+
+      - name: Verify release evidence manifest
+        run: make verify-release-evidence
+
+      - name: Package maturity artifacts
+        if: always()
+        run: |
+          python scripts/package_ci_artifacts.py \
+            --label maturity-${{ github.run_id }} \
+            --output build/ci_artifacts/maturity-${{ github.run_id }}.tar \
+            --path build/sp_differ_release_readiness.json \
+            --path build/sp_differ_release_readiness.md \
+            --path build/sp_differ_release_readiness_live.json \
+            --path build/sp_differ_release_readiness_live.md \
+            --path build/bip352_external_probe.json \
+            --path build/bip352_external_probe.md \
+            --path build/semantic_benchmark_summary.json \
+            --path build/semantic_benchmark_summary.md \
+            --path build/reference_semantic_benchmark.json \
+            --path build/reference_semantic_benchmark.md \
+            --path build/spdk_semantic_benchmark.json \
+            --path build/spdk_semantic_benchmark.md \
+            --path build/spdk_semantic_worker_benchmark.json \
+            --path build/spdk_semantic_worker_benchmark.md \
+            --path build/silent_payments_semantic_benchmark.json \
+            --path build/silent_payments_semantic_benchmark.md \
+            --path build/silent_payments_semantic_worker_benchmark.json \
+            --path build/silent_payments_semantic_worker_benchmark.md \
+            --path build/bip352_semantic_benchmark.json \
+            --path build/bip352_semantic_benchmark.md \
+            --path build/bip352_semantic_worker_benchmark.json \
+            --path build/bip352_semantic_worker_benchmark.md \
+            --path build/go_bip352_semantic_benchmark.json \
+            --path build/go_bip352_semantic_benchmark.md \
+            --path build/go_bip352_semantic_worker_benchmark.json \
+            --path build/go_bip352_semantic_worker_benchmark.md \
+            --path build/bdk_sp_semantic_benchmark.json \
+            --path build/bdk_sp_semantic_benchmark.md \
+            --path build/release_evidence_manifest.json \
+            --path build/release_evidence_manifest.md \
+            --path build/release_evidence_verification.json \
+            --path build/release_evidence_verification.md
+
+      - name: Upload maturity artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maturity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/ci_artifacts/maturity-${{ github.run_id }}.tar
+          if-no-files-found: error
+          retention-days: 30

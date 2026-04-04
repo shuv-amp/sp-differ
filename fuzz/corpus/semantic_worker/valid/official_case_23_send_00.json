@@ -1,0 +1,50 @@
+{
+  "case_format_version": 2,
+  "flags": 122,
+  "inputs": [
+    {
+      "input_type": "p2tr",
+      "outpoint_txid": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "51205a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+      "privkey": "eadc78165ff1f8ea94ad7cfdc54990738a4c53f6e0507b42154201b8e5dff3b1",
+      "pubkey": null,
+      "script_sig": "",
+      "txinwitness": "0140c459b671370d12cfb5acee76da7e3ba7cc29b0b4653e3af8388591082660137d087fdc8e89a612cd5d15be0febe61fc7cdcf3161a26e599a4514aa5c3e86f47b",
+      "txinwitness_stack": [
+        "c459b671370d12cfb5acee76da7e3ba7cc29b0b4653e3af8388591082660137d087fdc8e89a612cd5d15be0febe61fc7cdcf3161a26e599a4514aa5c3e86f47b"
+      ]
+    },
+    {
+      "input_type": "p2pkh",
+      "outpoint_txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "76a9147cdd63cc408564188e8e472640e921c7c90e651d88ac",
+      "privkey": "0378e95685b74565fa56751b84a32dfd18545d10d691641b8372e32164fad66a",
+      "pubkey": null,
+      "script_sig": "473045022100a8c61b2d470e393279d1ba54f254b7c237de299580b7fa01ffcc940442ecec4502201afba952f4e4661c40acde7acc0341589031ba103a307b886eb867b23b850b972103782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    }
+  ],
+  "kind": "send",
+  "network": "mainnet",
+  "recipient_groups": [
+    {
+      "count": 1,
+      "scan_pubkey": "02062d49ffc02787d586c608dfbec184aa91a6597d97b463ea5c6babd9d17a95a3",
+      "spend_pubkey": "0381eb9a9a9ec739d527c1631b31b421566f5c2a47b4ab5b1f6a686dfb68eab716"
+    }
+  ],
+  "seed": 5980780305148024576,
+  "semantic_adapter_request_version": 1,
+  "silent_payment_version": 0,
+  "source": {
+    "case_index": 23,
+    "comment": "Recipient ignores unrelated outputs",
+    "entry_index": 0,
+    "id": "official_case_23_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

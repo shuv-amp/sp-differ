@@ -1,0 +1,93 @@
+# Scripts
+
+This folder contains small developer scripts for running vectors, fuzzing, and report generation. Scripts should be deterministic, avoid network calls by default, and print clear repro commands.
+
+Current scripts:
+- `../sp_differ_cli.py` is the public repo-local CLI for verification, reporting, and replay.
+- `parse_case.py` parses and validates a v1 or v2 case file and prints a summary.
+- `validate_output.py` validates a worker output payload against the v1 output format.
+- `runner_smoke.py` performs an end-to-end worker smoke check with a clear exit code.
+- `byte_worker_parity_smoke.py` drives both byte-worker shared libraries through the ABI and checks representative v1 enum parity.
+- `fetch_bip352_vectors.py` refreshes the vendored official BIP352 vector snapshot and provenance manifest.
+- `audit_bip352_vectors.py` validates the vendored official snapshot and summarizes how much of it the current v1 format can represent.
+- `bip352_reference.py` loads and verifies the vendored upstream BIP352 reference bundle.
+- `semantic_adapter.py` validates semantic adapter requests and converts v2 cases into adapter-facing JSON.
+- `semantic_bridge.py` is the canonical bridge helper used by the compiled runner/compare path to build v2 semantic requests and validate or compare semantic results.
+- `semantic_contract.py` validates and compares normalized semantic artifacts.
+- `semantic_case_runner.py` provides the shared per-case adapter execution helpers used by compare and benchmark flows.
+- `semantic_worker_ffi.py` executes a semantic worker shared library through `ffi/sp_differ_semantic.h`.
+- `semantic_runner_smoke.py` exercises the converged compiled runner/compare v2 path against deterministic semantic worker fixtures, including expectation-approved alternative send outputs and the explicit `BOTH_ORACLE_MISMATCH` path.
+- `benchmark_semantic_adapter.py` benchmarks one semantic adapter or worker surface against the pinned derived v2 corpus while still enforcing semantic correctness.
+- `summarize_semantic_benchmarks.py` ranks benchmark reports only when their comparison signatures match exactly.
+- `semantic_benchmark_smoke.py` exercises the benchmark and summary scripts on a tiny reference-adapter slice.
+- `generate_release_evidence_manifest.py` hashes the materialized release-oriented evidence files so a published release can point at exact supporting artifacts.
+- `sign_release.sh` generates `SHA256SUMS` for compiled release binaries and, when given a maintainer key, writes an armored detached GPG signature for that checksum file.
+- `check_release_prereqs.py` audits the human-owned prerequisites for an official public release, specifically the top-level license file and published maintainer signing fingerprints in `SECURITY.md`.
+- `release_prereqs_smoke.py` exercises both the passing and failing paths of that prerequisite audit.
+- `release_evidence_smoke.py` verifies that release-evidence manifest generation records the expected paths and SHA256 values.
+- `verify_release_evidence.py` re-checks a generated release-evidence manifest against the current filesystem and can optionally verify a signed git tag with `git tag -v`.
+- `release_verification_smoke.py` exercises both the passing and drifted-file paths of that verification step.
+- `verify_packaged_release.py` verifies a packaged release archive or extracted directory by checking expected binaries, `SHA256SUMS`, optional signatures, and the compiled `--check-integrity` self-test.
+- `verify_packaged_release_smoke.py` exercises both the passing and checksum-drift paths of that packaged-release verifier.
+- `check_source_comment_discipline.py` scans repo-owned source comments for deferred-note markers and hype wording.
+- `source_comment_discipline_smoke.py` exercises that comment-discipline gate on a clean and a flagged source sample.
+- `semantic_fuzz_minimizer.py` shrinks semantic fuzz failures while preserving the same failure signature.
+- `semantic_fuzz_minimizer_smoke.py` exercises the reducer against synthetic structured and raw failures.
+- `package_ci_artifacts.py` tars CI reports and replay bundles so uploaded artifacts preserve executable replay scripts and directory structure.
+- `intake_semantic_regressions.py` promotes per-case failure artifacts into the tracked regression suite.
+- `run_semantic_regressions.py` replays the tracked regression suite through the same semantic compare engine.
+- `bip352_semantics.py` encodes official entries into v2 cases and derives normalized sender/receiver semantics from those v2 cases.
+- `run_bip352_reference_oracle.py` verifies the vendored upstream BIP352 reference bundle and runs it against the pinned official snapshot.
+- `bip352_external_probe.py` gathers live upstream version/test evidence for tracked external candidates, prefers exact resolved Rust dependency versions from `Cargo.lock` over manifest requirement strings when available, and emits data that `sp-differ status` can consume directly when the probe JSON lives under `build/`.
+- `bip352_external_probe_smoke.py` exercises the exact-version extraction path, including a multi-version `Cargo.lock` disambiguation case.
+- `generate_bip352_v2_cases.py` generates the full official send/receive corpus in SP-DIFFER case format v2 with normalized semantic expectations.
+- `run_bip352_v2_oracle_cases.py` re-derives semantics from the generated v2 cases and compares them to the normalized expectations.
+- `run_semantic_adapter_cases.py` invokes a semantic adapter command or semantic worker shared library over the derived v2 corpus and compares the normalized result to the expected semantic contract.
+- `run_semantic_adapter_fuzz.py` runs deterministic structured fuzzing against semantic command adapters and now emits exact-request replay artifacts that `sp-differ replay` can execute directly.
+- `generate_semantic_fuzz_corpus.py` regenerates the checked-in semantic worker fuzz corpus from the derived v2 corpus and active regression manifest.
+- `run_semantic_worker_fuzz.py` runs deterministic structured and raw-byte fuzzing against a semantic worker shared library, auto-minimizes failures, and writes replayable/promotable artifacts.
+- `generate_bip352_projected_cases.py` regenerates the sender-side official-vector subset that fits the current v1 case format.
+- `run_bip352_vector_smoke.py` runs the compiled runner against the derived official subset.
+
+Make targets:
+- `make worker` builds the C++ byte-worker library.
+- `make runner` builds the compiled runner.
+- `make compare` builds the compiled differential runner.
+- `make check` runs core I/O, case parser, and header validation smoke tests.
+- `make cli-smoke` exercises the public CLI release-readiness aggregator against a synthetic build tree.
+- `make release-report` writes a combined release-readiness report from the current local evidence under `build/`.
+- `make check-comments` verifies that repo-owned source comments remain reviewable and free of deferred-note markers.
+- `make verify-release-evidence` verifies that the current release-evidence manifest still matches the files on disk.
+- `make release-sign RELEASE_SIGN_GPG_KEY=<fingerprint>` signs the current `build/release/` binaries after `make release`.
+- `make verify-quick` and `make verify-release` drive the canonical offline CLI verification profiles.
+- `make verify-release-live` is the networked sign-off lane: it refreshes the external BIP352 probe first and writes `build/sp_differ_release_readiness_live.json`.
+- `make smoke` runs the end-to-end smoke check with the compiled runner.
+- `make worker-rust` builds the Rust byte-worker library and copies the shared library into `build/`.
+- `make smoke-rust` runs the compiled runner against the Rust byte-worker library.
+- `make parity-smoke` checks representative byte-worker parity cases directly through both shared libraries.
+- `make semantic-smoke` runs the converged compiled runner/compare path against deterministic semantic worker fixtures for both send and receive v2 cases, plus expectation-aware equivalence and shared-oracle-mismatch checks.
+- `make diff` runs the differential runner against the C++ and Rust byte-worker libraries.
+- `make oracle` runs the vendored upstream BIP352 semantic oracle offline.
+- `make vectors-v2` validates the full derived v2 semantic corpus against the vendored oracle.
+- `make adapters` runs the semantic adapter compare flow for the in-tree reference adapter, the SPDK-backed Rust command adapter, the SPDK-backed Rust semantic worker shared library, the independent `silent-payments` implementation in both command and semantic-worker forms, the independent `bip352` implementation in both forms, the external Go-backed `go-bip352` implementation in both forms, and the `bdk-sp` semantic adapter.
+- `make bench-adapters` benchmarks that same current adapter matrix over the pinned derived v2 corpus and writes a comparison-safe summary under `build/`.
+- `make maturity-signoff` is the heaviest integrated local lane: live release verification, benchmark matrix, refreshed local report, and hashed release evidence.
+- `make adapter-spdk-ffi` runs the compiled semantic worker compare flow for the SPDK-backed Rust implementation.
+- `make adapter-silent-payments` and `make adapter-silent-payments-ffi` run the second independent Rust implementation against the official corpus.
+- `make adapter-bip352` and `make adapter-bip352-ffi` run the third independent Rust implementation against the official corpus.
+- `make adapter-go-bip352` and `make adapter-go-bip352-ffi` run the fourth independent implementation, backed by the public Go `go-bip352` module, against the official corpus.
+- `make regressions` replays the tracked semantic regression suite against all current known-good adapters.
+- Benchmark reports are intentionally lab-scoped: command-adapter timings include startup/bridge cost, worker-library timings include the semantic worker FFI bridge, and summaries refuse to compare mismatched corpus selections.
+- Release evidence is intentionally explicit: a public release should point at `build/release_evidence_manifest.json` and a signed tag, not only a pasted console summary.
+- `.github/workflows/release.yml` is the tag-triggered packaging lane: it runs smoke plus native/reference fuzz gatekeeping first, then builds Linux x64/arm64 and macOS universal release archives.
+- `make fuzz-corpus` verifies the checked-in semantic worker fuzz corpus.
+- `make fuzz-minimizer-smoke` exercises the automatic reducer in isolation.
+- `make fuzz-semantic-adapters` runs deterministic semantic-adapter fuzzing across the current adapter set.
+- `make fuzz-semantic-spdk`, `make fuzz-semantic-silent-payments`, `make fuzz-semantic-bip352`, and `make fuzz-semantic-go-bip352` run deterministic semantic-worker fuzzing with replayable artifacts.
+- `.github/workflows/ci.yml` now runs short deterministic semantic-worker fuzzing on normal CI and uploads tarred semantic/fuzz artifacts on failure.
+- `.github/workflows/nightly-fuzz.yml` runs longer scheduled semantic-worker fuzz jobs and always uploads tarred replay artifacts for triage.
+- `sp-differ status --profile release --require-green` provides a single release-readiness check over the current build reports, and `sp-differ replay <artifact-dir>` replays saved failures without manually reconstructing commands.
+- Semantic adapter runs now write machine-readable JSON plus markdown summaries, and they can emit per-failure replay artifacts under `build/`.
+- Semantic worker fuzz failures now include reduced replay inputs under `minimized/`, and structured failures also emit a one-command promotion path into `tests/regressions/semantic/`.
+- `make vectors` validates the vendored official vector snapshot, checks the generated derived subset, and runs that subset through both byte-worker libraries.
+- `make vectors-refresh` refreshes the vendored official vector snapshot and regenerates the derived subset.

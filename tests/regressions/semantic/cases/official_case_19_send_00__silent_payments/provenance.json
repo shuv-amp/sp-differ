@@ -1,0 +1,22 @@
+{
+  "actual_sha256": "b70b80ce69596eb1acc7a7fd3df7654509e73207a4e820a018617cbd9fae6f89",
+  "adapter_name": "silent-payments",
+  "captured_from_artifact_dir": "build/silent_payments_semantic_adapter_artifacts/official_case_19_send_00",
+  "case_sha256": "c4ec030807ef93a3d058391055bbf1165c54af74c1c466b3effd0c752ebffc4e",
+  "errors": [
+    "actual acceptable_output_sets not accepted by expected contract"
+  ],
+  "expected_sha256": "4ccf268fcb0acf054432e563ae9b8022be64162ed42191b239f655f9d521022b",
+  "kind": "send",
+  "regression_id": "official_case_19_send_00__silent_payments",
+  "repro_cmd": "python3 scripts/run_semantic_adapter_cases.py --adapter-name silent-payments --adapter-cmd ./adapters/silent_payments_rust/target/debug/sp-differ-semantic-adapter-silent-payments --case-id official_case_19_send_00 --timeout-seconds 30.0 --json-out build/silent_payments_semantic_adapter_artifacts/official_case_19_send_00/replay_report.json",
+  "source": {
+    "case_index": 19,
+    "comment": "Single recipient: taproot input with NUMS point",
+    "entry_index": 0,
+    "id": "official_case_19_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "source_case_id": "official_case_19_send_00"
+}

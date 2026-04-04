@@ -1,0 +1,38 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 2,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "72cd082cccb633bf85240a83494b32dc943a4d05647a6686d23ad4ca59c0ebe4",
+      "pub_key": "2e847bb01d1b491da512ddd760b8509617ee38057003d6115d00ba562451323a"
+    },
+    {
+      "priv_key_tweak": "2f17ea873a0047fc01ba8010fef0969e76d0e4283f600d48f735098b1fee6eb9",
+      "pub_key": "841792c33c9dc6193e76744134125d40add8f2f4a96475f28ba150be032d64e8"
+    }
+  ],
+  "input_hash": "d9a9c2445c8384c1e916faef4a997f00852b877cc959dc69dc1d2bb631eb8f5b",
+  "input_pubkey_sum": "03853f51bef283502181e93238c8708ae27235dc51ae45a0c4053987c52fc6428b",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgrz6j0lcqnc04vxccydl0kpsj4frfje0ktmgcl2t346hkw30226xqupawdf48k8882j0strrvcmgg2kdawz53a54dd376ngdhak364hzcmynqtn"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "03dd5fd04d3c8863be750a1bd7474df06161461d38d3ce1397a5c78cee112cdcd2",
+  "source": {
+    "case_index": 11,
+    "comment": "Multiple outputs: multiple outputs, multiple recipients",
+    "entry_index": 0,
+    "id": "official_case_11_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "0314bec14463d6c0181083d607fecfba67bb83f95915f6f247975ec566d5642ee8"
+}

@@ -1,0 +1,35 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 1,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "10bde9781def20d7701e7603ef1b1e5e71c67bae7154818814e3c81ef5b1a3d3",
+      "pub_key": "4612cdbf845c66c7511d70aab4d9aed11e49e48cdb8d799d787101cdd0d53e4f"
+    }
+  ],
+  "input_hash": "aade43188c62354b11952d20585f2cf94aaf3d4451e98c3bd9f71a1d6b0ce5ef",
+  "input_pubkey_sum": "038b0d201fe111bdc0e6953772bd02a41959d25d5b2f66bcbe348af27bbdd42735",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338",
+    "02e0ec4f64b3fa2e463ccfcf4e856e37d5e1e20275bc89ec1def9eb098eff1f85d"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "034773b97ccad9791cb4213964ff9896ccd6581ee69345de5d114786d9d86b03a2",
+  "source": {
+    "case_index": 20,
+    "comment": "Pubkey extraction from malleated p2pkh",
+    "entry_index": 0,
+    "id": "official_case_20_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "028d6617f9bfe08604beb2188f4eebec923f5f8cc436fa6d14e4256e49bc32e7c8"
+}

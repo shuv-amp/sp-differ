@@ -1,0 +1,16 @@
+[package]
+name = "sp-differ-semantic-adapter-spdk"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "sp_differ_semantic_worker_spdk"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+bitcoin_hashes = "0.13"
+hex = "0.4"
+libc = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+silentpayments = "0.5.0"

@@ -1,0 +1,767 @@
+{
+  "case_format_version": 2,
+  "cases": [
+    {
+      "expectation_path": "official_case_00_send_00.expected.json",
+      "id": "official_case_00_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 0,
+      "official_comment": "Simple send: two inputs",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_00_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_00_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_00_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 0,
+      "official_comment": "Simple send: two inputs",
+      "official_receive_index": 0,
+      "path": "official_case_00_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_01_send_00.expected.json",
+      "id": "official_case_01_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 1,
+      "official_comment": "Simple send: two inputs, order reversed",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_01_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_01_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_01_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 1,
+      "official_comment": "Simple send: two inputs, order reversed",
+      "official_receive_index": 0,
+      "path": "official_case_01_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_02_send_00.expected.json",
+      "id": "official_case_02_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 2,
+      "official_comment": "Simple send: two inputs from the same transaction",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_02_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_02_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_02_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 2,
+      "official_comment": "Simple send: two inputs from the same transaction",
+      "official_receive_index": 0,
+      "path": "official_case_02_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_03_send_00.expected.json",
+      "id": "official_case_03_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 3,
+      "official_comment": "Simple send: two inputs from the same transaction, order reversed",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_03_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_03_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_03_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 3,
+      "official_comment": "Simple send: two inputs from the same transaction, order reversed",
+      "official_receive_index": 0,
+      "path": "official_case_03_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_04_send_00.expected.json",
+      "id": "official_case_04_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 4,
+      "official_comment": "Outpoint ordering byte-lexicographically vs. vout-integer",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_04_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_04_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_04_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 4,
+      "official_comment": "Outpoint ordering byte-lexicographically vs. vout-integer",
+      "official_receive_index": 0,
+      "path": "official_case_04_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_05_send_00.expected.json",
+      "id": "official_case_05_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 5,
+      "official_comment": "Single recipient: multiple UTXOs from the same public key",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_05_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_05_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_05_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 5,
+      "official_comment": "Single recipient: multiple UTXOs from the same public key",
+      "official_receive_index": 0,
+      "path": "official_case_05_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_06_send_00.expected.json",
+      "id": "official_case_06_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 6,
+      "official_comment": "Single recipient: taproot only inputs with even y-values",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_06_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_06_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_06_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 6,
+      "official_comment": "Single recipient: taproot only inputs with even y-values",
+      "official_receive_index": 0,
+      "path": "official_case_06_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_07_send_00.expected.json",
+      "id": "official_case_07_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 7,
+      "official_comment": "Single recipient: taproot only with mixed even/odd y-values",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_07_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_07_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_07_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 7,
+      "official_comment": "Single recipient: taproot only with mixed even/odd y-values",
+      "official_receive_index": 0,
+      "path": "official_case_07_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_08_send_00.expected.json",
+      "id": "official_case_08_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 8,
+      "official_comment": "Single recipient: taproot input with even y-value and non-taproot input",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_08_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_08_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_08_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 8,
+      "official_comment": "Single recipient: taproot input with even y-value and non-taproot input",
+      "official_receive_index": 0,
+      "path": "official_case_08_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_09_send_00.expected.json",
+      "id": "official_case_09_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 9,
+      "official_comment": "Single recipient: taproot input with odd y-value and non-taproot input",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_09_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_09_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_09_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 9,
+      "official_comment": "Single recipient: taproot input with odd y-value and non-taproot input",
+      "official_receive_index": 0,
+      "path": "official_case_09_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_10_send_00.expected.json",
+      "id": "official_case_10_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 10,
+      "official_comment": "Multiple outputs: multiple outputs, same recipient",
+      "official_send_index": 0,
+      "output_count_options": [
+        2
+      ],
+      "path": "official_case_10_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_10_receive_00.expected.json",
+      "found_output_count": 2,
+      "id": "official_case_10_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 10,
+      "official_comment": "Multiple outputs: multiple outputs, same recipient",
+      "official_receive_index": 0,
+      "path": "official_case_10_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_11_send_00.expected.json",
+      "id": "official_case_11_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 11,
+      "official_comment": "Multiple outputs: multiple outputs, multiple recipients",
+      "official_send_index": 0,
+      "output_count_options": [
+        3
+      ],
+      "path": "official_case_11_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_11_receive_00.expected.json",
+      "found_output_count": 2,
+      "id": "official_case_11_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 11,
+      "official_comment": "Multiple outputs: multiple outputs, multiple recipients",
+      "official_receive_index": 0,
+      "path": "official_case_11_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_12_send_00.expected.json",
+      "id": "official_case_12_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 12,
+      "official_comment": "Receiving with labels: label with even parity",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_12_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_12_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_12_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 12,
+      "official_comment": "Receiving with labels: label with even parity",
+      "official_receive_index": 0,
+      "path": "official_case_12_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_13_send_00.expected.json",
+      "id": "official_case_13_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 13,
+      "official_comment": "Receiving with labels: label with odd parity",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_13_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_13_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_13_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 13,
+      "official_comment": "Receiving with labels: label with odd parity",
+      "official_receive_index": 0,
+      "path": "official_case_13_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_14_send_00.expected.json",
+      "id": "official_case_14_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 14,
+      "official_comment": "Receiving with labels: large label integer",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_14_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_14_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_14_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 14,
+      "official_comment": "Receiving with labels: large label integer",
+      "official_receive_index": 0,
+      "path": "official_case_14_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_15_send_00.expected.json",
+      "id": "official_case_15_send_00",
+      "kind": "send",
+      "notes": [
+        "multiple_valid_output_sets"
+      ],
+      "official_case_index": 15,
+      "official_comment": "Multiple outputs with labels: un-labeled and labeled address; same recipient",
+      "official_send_index": 0,
+      "output_count_options": [
+        2
+      ],
+      "path": "official_case_15_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_15_receive_00.expected.json",
+      "found_output_count": 2,
+      "id": "official_case_15_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 15,
+      "official_comment": "Multiple outputs with labels: un-labeled and labeled address; same recipient",
+      "official_receive_index": 0,
+      "path": "official_case_15_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_16_send_00.expected.json",
+      "id": "official_case_16_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 16,
+      "official_comment": "Multiple outputs with labels: multiple outputs for labeled address; same recipient",
+      "official_send_index": 0,
+      "output_count_options": [
+        2
+      ],
+      "path": "official_case_16_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_16_receive_00.expected.json",
+      "found_output_count": 2,
+      "id": "official_case_16_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 16,
+      "official_comment": "Multiple outputs with labels: multiple outputs for labeled address; same recipient",
+      "official_receive_index": 0,
+      "path": "official_case_16_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_17_send_00.expected.json",
+      "id": "official_case_17_send_00",
+      "kind": "send",
+      "notes": [
+        "multiple_valid_output_sets"
+      ],
+      "official_case_index": 17,
+      "official_comment": "Multiple outputs with labels: un-labeled, labeled, and multiple outputs for labeled address; same recipients",
+      "official_send_index": 0,
+      "output_count_options": [
+        4
+      ],
+      "path": "official_case_17_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_17_receive_00.expected.json",
+      "found_output_count": 4,
+      "id": "official_case_17_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 17,
+      "official_comment": "Multiple outputs with labels: un-labeled, labeled, and multiple outputs for labeled address; same recipients",
+      "official_receive_index": 0,
+      "path": "official_case_17_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_18_send_00.expected.json",
+      "id": "official_case_18_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 18,
+      "official_comment": "Single recipient: use silent payments for sender change",
+      "official_send_index": 0,
+      "output_count_options": [
+        2
+      ],
+      "path": "official_case_18_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_18_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_18_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 18,
+      "official_comment": "Single recipient: use silent payments for sender change",
+      "official_receive_index": 0,
+      "path": "official_case_18_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_18_receive_01.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_18_receive_01",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 18,
+      "official_comment": "Single recipient: use silent payments for sender change",
+      "official_receive_index": 1,
+      "path": "official_case_18_receive_01.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_19_send_00.expected.json",
+      "id": "official_case_19_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 19,
+      "official_comment": "Single recipient: taproot input with NUMS point",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_19_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_19_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_19_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 19,
+      "official_comment": "Single recipient: taproot input with NUMS point",
+      "official_receive_index": 0,
+      "path": "official_case_19_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_20_send_00.expected.json",
+      "id": "official_case_20_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 20,
+      "official_comment": "Pubkey extraction from malleated p2pkh",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_20_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_20_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_20_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 20,
+      "official_comment": "Pubkey extraction from malleated p2pkh",
+      "official_receive_index": 0,
+      "path": "official_case_20_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_21_send_00.expected.json",
+      "id": "official_case_21_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 21,
+      "official_comment": "P2PKH and P2WPKH Uncompressed Keys are skipped",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_21_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_21_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_21_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 21,
+      "official_comment": "P2PKH and P2WPKH Uncompressed Keys are skipped",
+      "official_receive_index": 0,
+      "path": "official_case_21_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_22_send_00.expected.json",
+      "id": "official_case_22_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 22,
+      "official_comment": "Skip invalid P2SH inputs",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_22_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_22_receive_00.expected.json",
+      "found_output_count": 1,
+      "id": "official_case_22_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 22,
+      "official_comment": "Skip invalid P2SH inputs",
+      "official_receive_index": 0,
+      "path": "official_case_22_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_23_send_00.expected.json",
+      "id": "official_case_23_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 23,
+      "official_comment": "Recipient ignores unrelated outputs",
+      "official_send_index": 0,
+      "output_count_options": [
+        1
+      ],
+      "path": "official_case_23_send_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_23_receive_00.expected.json",
+      "found_output_count": 0,
+      "id": "official_case_23_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 23,
+      "official_comment": "Recipient ignores unrelated outputs",
+      "official_receive_index": 0,
+      "path": "official_case_23_receive_00.hex",
+      "semantic_status": "ok"
+    },
+    {
+      "expectation_path": "official_case_24_send_00.expected.json",
+      "id": "official_case_24_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 24,
+      "official_comment": "No valid inputs, sender generates no outputs",
+      "official_send_index": 0,
+      "output_count_options": [
+        0
+      ],
+      "path": "official_case_24_send_00.hex",
+      "semantic_status": "no_eligible_inputs"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_24_receive_00.expected.json",
+      "found_output_count": 0,
+      "id": "official_case_24_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 24,
+      "official_comment": "No valid inputs, sender generates no outputs",
+      "official_receive_index": 0,
+      "path": "official_case_24_receive_00.hex",
+      "semantic_status": "no_eligible_inputs"
+    },
+    {
+      "expectation_path": "official_case_25_send_00.expected.json",
+      "id": "official_case_25_send_00",
+      "kind": "send",
+      "notes": [],
+      "official_case_index": 25,
+      "official_comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+      "official_send_index": 0,
+      "output_count_options": [
+        0
+      ],
+      "path": "official_case_25_send_00.hex",
+      "semantic_status": "zero_scalar"
+    },
+    {
+      "detailed_outputs_available": true,
+      "expectation_path": "official_case_25_receive_00.expected.json",
+      "found_output_count": 0,
+      "id": "official_case_25_receive_00",
+      "kind": "receive",
+      "notes": [],
+      "official_case_index": 25,
+      "official_comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+      "official_receive_index": 0,
+      "path": "official_case_25_receive_00.hex",
+      "semantic_status": "point_at_infinity"
+    },
+    {
+      "expectation_path": "official_case_26_send_00.expected.json",
+      "id": "official_case_26_send_00",
+      "kind": "send",
+      "notes": [
+        "per_group_recipient_limit_exceeded"
+      ],
+      "official_case_index": 26,
+      "official_comment": "Maximum per-group recipient limit K_max is exceeded (2324 matches): sending fails, receiver doesn't scan beyond limit",
+      "official_send_index": 0,
+      "output_count_options": [
+        0
+      ],
+      "path": "official_case_26_send_00.hex",
+      "semantic_status": "recipient_limit_exceeded"
+    },
+    {
+      "detailed_outputs_available": false,
+      "expectation_path": "official_case_26_receive_00.expected.json",
+      "found_output_count": 2323,
+      "id": "official_case_26_receive_00",
+      "kind": "receive",
+      "notes": [
+        "count_only_expectation",
+        "scan_limit_reached"
+      ],
+      "official_case_index": 26,
+      "official_comment": "Maximum per-group recipient limit K_max is exceeded (2324 matches): sending fails, receiver doesn't scan beyond limit",
+      "official_receive_index": 0,
+      "path": "official_case_26_receive_00.hex",
+      "semantic_status": "ok"
+    }
+  ],
+  "derived_case_count": 55,
+  "derived_receive_case_count": 28,
+  "derived_send_case_count": 27,
+  "notes": [
+    "These are full official BIP352 send and receive entries encoded into SP-DIFFER case format v2.",
+    "Each .expected.json file contains the normalized semantic comparison contract derived from the v2 case and cross-checked against the pinned official upstream expectations."
+  ],
+  "semantic_contract_version": 1,
+  "source_snapshot": "tests/vectors/bip352/official/send_and_receive_test_vectors.json",
+  "source_snapshot_sha256": "5d43f942c8058f244d6422133dd6b078a5c21c3c702fa7a51b41b24c951709c9",
+  "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+}

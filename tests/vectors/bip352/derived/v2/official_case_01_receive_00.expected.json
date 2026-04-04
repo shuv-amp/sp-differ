@@ -1,0 +1,34 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 1,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "f438b40179a3c4262de12986c0e6cce0634007cdc79c1dcd3e20b9ebc2e7eef6",
+      "pub_key": "3e9fce73d4e77a4809908e3c3a2e54ee147b9312dc5044a193d1fc85de46e3c1"
+    }
+  ],
+  "input_hash": "5bfe5321d759e01a2ac9292f0f396ff9c3d8b58d89ccb21a6922e84bb7ad0668",
+  "input_pubkey_sum": "032562c1ab2d6bd45d7ca4d78f569999e5333dffd3ac5263924fd00d00dedc4bee",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03bd85685d03d111699b15d046319febe77f8de5286e9e512703cdee1bf3be3792"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "028158aff7d61ea66b2fa7f555bc3c5937d1debbde16423d630f9aa7943e14d80d",
+  "source": {
+    "case_index": 1,
+    "comment": "Simple send: two inputs, order reversed",
+    "entry_index": 0,
+    "id": "official_case_01_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "024ac253c216532e961988e2a8ce266a447c894c781e52ef6cee902361db960004"
+}

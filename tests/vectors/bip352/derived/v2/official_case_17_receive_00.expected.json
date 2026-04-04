@@ -1,0 +1,48 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 4,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "4e3352fbe0505c25e718d96007c259ef08db34f8c844e4ff742d9855ff03805a",
+      "pub_key": "006a02c308ccdbf3ac49f0638f6de128f875db5a213095cf112b3b77722472ae"
+    },
+    {
+      "priv_key_tweak": "43100f89f1a6bf10081c92b473ffc57ceac7dbed600b6aba9bb3976f17dbb914",
+      "pub_key": "39f42624d5c32a77fda80ff0acee269afec601d3791803e80252ae04e4ffcf4c"
+    },
+    {
+      "priv_key_tweak": "bf709f98d4418f8a67e738154ae48818dad44689cd37fbc070891a396dd1c633",
+      "pub_key": "ae1a780c04237bd577283c3ddb2e499767c3214160d5a6b0767e6b8c278bd701"
+    },
+    {
+      "priv_key_tweak": "736f05e4e3072c3b8656bedef2e9bf54cbcaa2b6fe5320d3e86f5b96874dda71",
+      "pub_key": "ca64abe1e0f737823fb9a94f597eed418fb2df77b1317e26b881a14bb594faaa"
+    }
+  ],
+  "input_hash": "d9a9c2445c8384c1e916faef4a997f00852b877cc959dc69dc1d2bb631eb8f5b",
+  "input_pubkey_sum": "03853f51bef283502181e93238c8708ae27235dc51ae45a0c4053987c52fc6428b",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv",
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqaxww2fnhrx05cghth75n0qcj59e3e2anscr0q9wyknjxtxycg07y3pevyj",
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjyh2ju7hd5gj57jg5r9lev3pckk4n2shtzaq34467erzzdfajfggty6aa5"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "038efbcbc1b0938fba3bf59fea1219a3c54b6d6f9107560da05001407adc13f413",
+  "source": {
+    "case_index": 17,
+    "comment": "Multiple outputs with labels: un-labeled, labeled, and multiple outputs for labeled address; same recipients",
+    "entry_index": 0,
+    "id": "official_case_17_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "0314bec14463d6c0181083d607fecfba67bb83f95915f6f247975ec566d5642ee8"
+}

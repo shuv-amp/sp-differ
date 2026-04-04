@@ -1,0 +1,168 @@
+{
+  "case_format": "v1",
+  "cases": [
+    {
+      "expected_input_private_key_sum": "e7638ebfda3ab3849a5707e240a6627671f7f6e609bf172691cf1e9780e51d47",
+      "expected_input_pub_keys": [
+        "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+        "02782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+      ],
+      "expected_outputs_xonly_groups": [
+        [
+          "de88bea8e7ffc9ce1af30d1132f910323c505185aec8eae361670421e749a1fb"
+        ]
+      ],
+      "expected_shared_secrets": [
+        "02de9719785c6d09f71571dadf44bca59edba2af3e689c65cbc3bb5a4a387732ef"
+      ],
+      "input_types": [
+        "p2tr",
+        "p2tr"
+      ],
+      "negative": false,
+      "official_case_index": 6,
+      "official_comment": "Single recipient: taproot only inputs with even y-values",
+      "official_send_index": 0,
+      "output_count": 1,
+      "path": "official_case_06_send_00.hex",
+      "scan_pub_key": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pub_key": "025cc9856d6f8375350e123978daac200c260cb5b5ae83106cab90484dcd8fcf36"
+    },
+    {
+      "expected_input_private_key_sum": "cda4ff9a3480e1fbfc6edd61b222f280f9baa0652002c1ffdb612efcc45d2ff2",
+      "expected_input_pub_keys": [
+        "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+        "028c8d23d4764feffcd5e72e380802540fa0f88e3d62ad5e0b47955f74d7b283c4"
+      ],
+      "expected_outputs_xonly_groups": [
+        [
+          "77cab7dd12b10259ee82c6ea4b509774e33e7078e7138f568092241bf26b99f1"
+        ]
+      ],
+      "expected_shared_secrets": [
+        "030e7f5ca4bf109fc35c8c2d878f756c891ac04c456cc5f0b05fcec4d3b2b1beb2"
+      ],
+      "input_types": [
+        "p2tr",
+        "p2tr"
+      ],
+      "negative": false,
+      "official_case_index": 7,
+      "official_comment": "Single recipient: taproot only with mixed even/odd y-values",
+      "official_send_index": 0,
+      "output_count": 1,
+      "path": "official_case_07_send_00.hex",
+      "scan_pub_key": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pub_key": "025cc9856d6f8375350e123978daac200c260cb5b5ae83106cab90484dcd8fcf36"
+    },
+    {
+      "expected_input_private_key_sum": "fc8716a97a48ba9a05a98ae47b5cd201a25a7fd5d8b73c203c5f7b6b6b3b6ad7",
+      "expected_input_pub_keys": [
+        "02782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+      ],
+      "expected_outputs_xonly_groups": [
+        [
+          "79e79897c52935bfd97fc6e076a6431a0c7543ca8c31e0fc3cf719bb572c842d"
+        ]
+      ],
+      "expected_shared_secrets": [
+        "036f040608cd1e5ee79c54e78bea85904c895591f547beae080d0c5f6946c2730d"
+      ],
+      "input_types": [
+        "p2tr",
+        "p2tr",
+        "p2tr"
+      ],
+      "negative": false,
+      "official_case_index": 19,
+      "official_comment": "Single recipient: taproot input with NUMS point",
+      "official_send_index": 0,
+      "output_count": 1,
+      "path": "official_case_19_send_00.hex",
+      "scan_pub_key": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pub_key": "025cc9856d6f8375350e123978daac200c260cb5b5ae83106cab90484dcd8fcf36"
+    },
+    {
+      "expected_input_private_key_sum": "eadc78165ff1f8ea94ad7cfdc54990738a4c53f6e0507b42154201b8e5dff3b1",
+      "expected_input_pub_keys": [
+        "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5"
+      ],
+      "expected_outputs_xonly_groups": [
+        [
+          "67fee277da9e8542b5d2e6f32d660a9bbd3f0e107c2d53638ab1d869088882d6"
+        ]
+      ],
+      "expected_shared_secrets": [
+        "0295a54c359da5b2640601ddbedb26e040cb97b6a3432e60b76d1258e85f72fa64"
+      ],
+      "input_types": [
+        "p2sh-p2wpkh",
+        "p2sh-p2wpkh",
+        "p2sh-p2wpkh"
+      ],
+      "negative": false,
+      "official_case_index": 22,
+      "official_comment": "Skip invalid P2SH inputs",
+      "official_send_index": 0,
+      "output_count": 1,
+      "path": "official_case_22_send_00.hex",
+      "scan_pub_key": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pub_key": "025cc9856d6f8375350e123978daac200c260cb5b5ae83106cab90484dcd8fcf36"
+    },
+    {
+      "expected_input_private_key_sum": null,
+      "expected_input_pub_keys": [
+        "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+        "03557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+      ],
+      "expected_outputs_xonly_groups": [
+        []
+      ],
+      "expected_shared_secrets": [
+        null
+      ],
+      "input_types": [
+        "p2wpkh",
+        "p2wpkh"
+      ],
+      "negative": true,
+      "official_case_index": 25,
+      "official_comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+      "official_send_index": 0,
+      "output_count": 1,
+      "path": "official_case_25_send_00.hex",
+      "scan_pub_key": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+      "spend_pub_key": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+    },
+    {
+      "expected_input_private_key_sum": "0000000000000000000000000000000000000000000000000000000000001337",
+      "expected_input_pub_keys": [
+        "02bca87f72e604e8850064552bedf380ca4584227057efe12a6cc238470658aaa3"
+      ],
+      "expected_outputs_xonly_groups": [
+        []
+      ],
+      "expected_shared_secrets": [
+        null
+      ],
+      "input_types": [
+        "p2tr"
+      ],
+      "negative": true,
+      "official_case_index": 26,
+      "official_comment": "Maximum per-group recipient limit K_max is exceeded (2324 matches): sending fails, receiver doesn't scan beyond limit",
+      "official_send_index": 0,
+      "output_count": 2324,
+      "path": "official_case_26_send_00.hex",
+      "scan_pub_key": "02e6c47ae6962c5ea1559f48b437c193a1bcb1d72d08d75d743ba3cbfb8e7afbeb",
+      "spend_pub_key": "0376af621daaa27932176bae57836e535b6bee0a77197fe218ca0bb03bd9387090"
+    }
+  ],
+  "derived_case_count": 6,
+  "notes": [
+    "These are sender-side official BIP352 vectors that fit the current SP-DIFFER case format v1 without changing the format.",
+    "Receiving vectors are not represented here because v1 does not model outputs-to-scan, receiver key material, or input pubkey extraction context."
+  ],
+  "source_snapshot": "tests/vectors/bip352/official/send_and_receive_test_vectors.json",
+  "source_snapshot_sha256": "5d43f942c8058f244d6422133dd6b078a5c21c3c702fa7a51b41b24c951709c9"
+}

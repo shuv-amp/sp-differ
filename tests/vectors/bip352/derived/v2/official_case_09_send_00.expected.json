@@ -1,0 +1,35 @@
+{
+  "acceptable_output_sets": [
+    [
+      "359358f59ee9e9eec3f00bdf4882570fd5c182e451aa2650b788544aff012a3a"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "2c648edc10c4f485a825c6cbc12db0966c98c4b05ed13fde156d3647bcd061d9",
+  "input_private_key_sum": "700fd97abd324179e8bcc72587bbd9a40b43f67535ce95a0b80175b2dc73a314",
+  "input_pubkeys": [
+    "028c8d23d4764feffcd5e72e380802540fa0f88e3d62ad5e0b47955f74d7b283c4",
+    "03e0ec4f64b3fa2e463ccfcf4e856e37d5e1e20275bc89ec1def9eb098eff1f85d"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "03d9437eb3676cf5cc00feebe68bc44c4567332e4b89788dec9eceb3779054442b"
+    }
+  ],
+  "source": {
+    "case_index": 9,
+    "comment": "Single recipient: taproot input with odd y-value and non-taproot input",
+    "entry_index": 0,
+    "id": "official_case_09_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

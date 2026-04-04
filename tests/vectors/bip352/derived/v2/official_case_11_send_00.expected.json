@@ -1,0 +1,41 @@
+{
+  "acceptable_output_sets": [
+    [
+      "2e847bb01d1b491da512ddd760b8509617ee38057003d6115d00ba562451323a",
+      "841792c33c9dc6193e76744134125d40add8f2f4a96475f28ba150be032d64e8",
+      "f207162b1a7abc51c42017bef055e9ec1efc3d3567cb720357e2b84325db33ac"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "d9a9c2445c8384c1e916faef4a997f00852b877cc959dc69dc1d2bb631eb8f5b",
+  "input_private_key_sum": "ee55616ce5a93e508f03f21949ecbe70a2a0b107b6e1df5d98b4e4da4adaca1b",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    3
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "02062d49ffc02787d586c608dfbec184aa91a6597d97b463ea5c6babd9d17a95a3",
+      "shared_secret": "03dd5fd04d3c8863be750a1bd7474df06161461d38d3ce1397a5c78cee112cdcd2"
+    },
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "038efbcbc1b0938fba3bf59fea1219a3c54b6d6f9107560da05001407adc13f413"
+    }
+  ],
+  "source": {
+    "case_index": 11,
+    "comment": "Multiple outputs: multiple outputs, multiple recipients",
+    "entry_index": 0,
+    "id": "official_case_11_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

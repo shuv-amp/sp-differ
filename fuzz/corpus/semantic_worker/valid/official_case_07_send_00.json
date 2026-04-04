@@ -1,0 +1,52 @@
+{
+  "case_format_version": 2,
+  "flags": 122,
+  "inputs": [
+    {
+      "input_type": "p2tr",
+      "outpoint_txid": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "51205a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+      "privkey": "eadc78165ff1f8ea94ad7cfdc54990738a4c53f6e0507b42154201b8e5dff3b1",
+      "pubkey": null,
+      "script_sig": "",
+      "txinwitness": "0140c459b671370d12cfb5acee76da7e3ba7cc29b0b4653e3af8388591082660137d087fdc8e89a612cd5d15be0febe61fc7cdcf3161a26e599a4514aa5c3e86f47b",
+      "txinwitness_stack": [
+        "c459b671370d12cfb5acee76da7e3ba7cc29b0b4653e3af8388591082660137d087fdc8e89a612cd5d15be0febe61fc7cdcf3161a26e599a4514aa5c3e86f47b"
+      ]
+    },
+    {
+      "input_type": "p2tr",
+      "outpoint_txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "51208c8d23d4764feffcd5e72e380802540fa0f88e3d62ad5e0b47955f74d7b283c4",
+      "privkey": "1d37787c2b7116ee983e9f9c13269df29091b391c04db94239e0d2bc2182c3bf",
+      "pubkey": null,
+      "script_sig": "",
+      "txinwitness": "01400a4d0dca6293f40499394d7eefe14a1de11e0e3454f51de2e802592abf5ee549042a1b1a8fb2e149ee9dd3f086c1b69b2f182565ab6ecf599b1ec9ebadfda6c5",
+      "txinwitness_stack": [
+        "0a4d0dca6293f40499394d7eefe14a1de11e0e3454f51de2e802592abf5ee549042a1b1a8fb2e149ee9dd3f086c1b69b2f182565ab6ecf599b1ec9ebadfda6c5"
+      ]
+    }
+  ],
+  "kind": "send",
+  "network": "mainnet",
+  "recipient_groups": [
+    {
+      "count": 1,
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pubkey": "025cc9856d6f8375350e123978daac200c260cb5b5ae83106cab90484dcd8fcf36"
+    }
+  ],
+  "seed": 5980780305148020480,
+  "semantic_adapter_request_version": 1,
+  "silent_payment_version": 0,
+  "source": {
+    "case_index": 7,
+    "comment": "Single recipient: taproot only with mixed even/odd y-values",
+    "entry_index": 0,
+    "id": "official_case_07_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

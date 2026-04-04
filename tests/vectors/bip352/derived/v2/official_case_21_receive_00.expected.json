@@ -1,0 +1,33 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 1,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "688fa3aeb97d2a46ae87b03591921c2eaf4b505eb0ddca2733c94701e01060cf",
+      "pub_key": "67fee277da9e8542b5d2e6f32d660a9bbd3f0e107c2d53638ab1d869088882d6"
+    }
+  ],
+  "input_hash": "9be481e9efc788e2344fbbacc42db86d5e191a4269cace545bb847bdbb251bfc",
+  "input_pubkey_sum": "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "0295a54c359da5b2640601ddbedb26e040cb97b6a3432e60b76d1258e85f72fa64",
+  "source": {
+    "case_index": 21,
+    "comment": "P2PKH and P2WPKH Uncompressed Keys are skipped",
+    "entry_index": 0,
+    "id": "official_case_21_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "02b04034f00da0678507d1345b7d56fecef825a1151f9dc7d8ca6946452a9e1f43"
+}

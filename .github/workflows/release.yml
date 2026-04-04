@@ -1,0 +1,281 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RELEASE_VERSION: ${{ github.ref_name }}
+
+jobs:
+  gatekeeper:
+    name: Gatekeeper
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsecp256k1-dev
+
+      - name: Smoke and fuzz gate
+        run: |
+          make smoke SP_DIFFER_BUILD_VERSION="${RELEASE_VERSION}"
+          make native-reference-fuzz SP_DIFFER_BUILD_VERSION="${RELEASE_VERSION}" FUZZ_SEED=352
+
+  build-linux:
+    name: Release Linux (${{ matrix.target }})
+    needs: gatekeeper
+    runs-on: ${{ matrix.runs-on }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            runs-on: ubuntu-24.04
+            worker_lib: libsp_differ_worker.so
+          - target: linux-arm64
+            runs-on: ubuntu-24.04-arm
+            worker_lib: libsp_differ_worker.so
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsecp256k1-dev gnupg
+
+      - name: Build release artifacts
+        run: make release SP_DIFFER_BUILD_VERSION="${RELEASE_VERSION}"
+
+      - name: Verify CLI integrity metadata
+        run: |
+          ./build/release/sp_differ_cli --check-integrity \
+            --json-out build/release_integrity.json \
+            --markdown-out build/release_integrity.md
+
+      - name: Stage release directory
+        run: |
+          dist="build/dist/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}"
+          mkdir -p "$dist"
+          cp build/release/sp_differ_runner "$dist/"
+          cp build/release/sp_differ_compare "$dist/"
+          cp build/release/sp_differ_cli "$dist/"
+          cp "build/release/${{ matrix.worker_lib }}" "$dist/"
+          cp build/release_integrity.json "$dist/"
+          cp build/release_integrity.md "$dist/"
+
+      - name: Import release signing key
+        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        env:
+          RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
+        run: |
+          key_file="$(mktemp)"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s' "$RELEASE_GPG_PRIVATE_KEY" > "$key_file"
+          chmod 600 "$key_file"
+          gpg --batch --import "$key_file"
+          rm -f "$key_file"
+
+      - name: Generate signed checksums
+        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        env:
+          GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+        run: |
+          ./scripts/sign_release.sh \
+            --input-dir "build/dist/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}" \
+            --output-dir "build/dist/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}" \
+            --gpg-key "${{ secrets.RELEASE_GPG_KEY_ID }}"
+
+      - name: Generate unsigned checksums
+        if: ${{ !(secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '') }}
+        run: |
+          ./scripts/sign_release.sh \
+            --input-dir "build/dist/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}" \
+            --output-dir "build/dist/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}" \
+            --allow-unsigned
+
+      - name: Package archive
+        run: |
+          tar -czf "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}.tar.gz" \
+            -C build/dist "sp-differ-${RELEASE_VERSION}-${{ matrix.target }}"
+
+      - name: Verify packaged archive
+        run: |
+          python3 scripts/verify_packaged_release.py \
+            --archive "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}.tar.gz" \
+            --json-out "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-verification.json" \
+            --markdown-out "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-verification.md"
+
+      - name: Upload release archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}
+          path: build/sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  build-macos-arch:
+    name: Release macOS (${{ matrix.arch }})
+    needs: gatekeeper
+    runs-on: ${{ matrix.runs-on }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runs-on: macos-13
+          - arch: arm64
+            runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install native dependencies
+        run: |
+          brew update
+          brew install secp256k1 gnupg
+
+      - name: Build release artifacts
+        run: make release SP_DIFFER_BUILD_VERSION="${RELEASE_VERSION}"
+
+      - name: Verify CLI integrity metadata
+        run: |
+          ./build/release/sp_differ_cli --check-integrity \
+            --json-out build/release_integrity.json \
+            --markdown-out build/release_integrity.md
+
+      - name: Stage per-arch release directory
+        run: |
+          dist="build/macos-arch/${{ matrix.arch }}"
+          mkdir -p "$dist"
+          cp build/release/sp_differ_runner "$dist/"
+          cp build/release/sp_differ_compare "$dist/"
+          cp build/release/sp_differ_cli "$dist/"
+          cp build/release/libsp_differ_worker.dylib "$dist/"
+          cp build/release_integrity.json "$dist/"
+          cp build/release_integrity.md "$dist/"
+
+      - name: Upload per-arch macOS binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}-raw-${{ env.RELEASE_VERSION }}
+          path: build/macos-arch/${{ matrix.arch }}
+          if-no-files-found: error
+          retention-days: 7
+
+  build-macos-universal:
+    name: Release macOS Universal
+    needs: build-macos-arch
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install signing tools
+        run: |
+          brew update
+          brew install gnupg
+
+      - name: Download arm64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-arm64-raw-${{ env.RELEASE_VERSION }}
+          path: build/macos-raw/arm64
+
+      - name: Download x86_64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-x86_64-raw-${{ env.RELEASE_VERSION }}
+          path: build/macos-raw/x86_64
+
+      - name: Create universal binaries
+        run: |
+          dist="build/dist/sp-differ-${RELEASE_VERSION}-macos-universal"
+          mkdir -p "$dist"
+          lipo -create build/macos-raw/arm64/sp_differ_runner build/macos-raw/x86_64/sp_differ_runner -output "$dist/sp_differ_runner"
+          lipo -create build/macos-raw/arm64/sp_differ_compare build/macos-raw/x86_64/sp_differ_compare -output "$dist/sp_differ_compare"
+          lipo -create build/macos-raw/arm64/sp_differ_cli build/macos-raw/x86_64/sp_differ_cli -output "$dist/sp_differ_cli"
+          lipo -create build/macos-raw/arm64/libsp_differ_worker.dylib build/macos-raw/x86_64/libsp_differ_worker.dylib -output "$dist/libsp_differ_worker.dylib"
+          chmod +x "$dist/sp_differ_runner" "$dist/sp_differ_compare" "$dist/sp_differ_cli"
+
+      - name: Verify universal CLI integrity metadata
+        run: |
+          ./build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/sp_differ_cli --check-integrity \
+            --json-out build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/release_integrity.json \
+            --markdown-out build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/release_integrity.md
+
+      - name: Import release signing key
+        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        env:
+          RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
+        run: |
+          key_file="$(mktemp)"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s' "$RELEASE_GPG_PRIVATE_KEY" > "$key_file"
+          chmod 600 "$key_file"
+          gpg --batch --import "$key_file"
+          rm -f "$key_file"
+
+      - name: Generate signed checksums
+        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        env:
+          GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
+        run: |
+          ./scripts/sign_release.sh \
+            --input-dir "build/dist/sp-differ-${RELEASE_VERSION}-macos-universal" \
+            --output-dir "build/dist/sp-differ-${RELEASE_VERSION}-macos-universal" \
+            --gpg-key "${{ secrets.RELEASE_GPG_KEY_ID }}"
+
+      - name: Generate unsigned checksums
+        if: ${{ !(secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '') }}
+        run: |
+          ./scripts/sign_release.sh \
+            --input-dir "build/dist/sp-differ-${RELEASE_VERSION}-macos-universal" \
+            --output-dir "build/dist/sp-differ-${RELEASE_VERSION}-macos-universal" \
+            --allow-unsigned
+
+      - name: Package archive
+        run: |
+          tar -czf "build/sp-differ-${RELEASE_VERSION}-macos-universal.tar.gz" \
+            -C build/dist "sp-differ-${RELEASE_VERSION}-macos-universal"
+
+      - name: Verify packaged archive
+        run: |
+          python3 scripts/verify_packaged_release.py \
+            --archive "build/sp-differ-${RELEASE_VERSION}-macos-universal.tar.gz" \
+            --json-out "build/sp-differ-${RELEASE_VERSION}-macos-universal-verification.json" \
+            --markdown-out "build/sp-differ-${RELEASE_VERSION}-macos-universal-verification.md"
+
+      - name: Upload universal archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: sp-differ-${{ env.RELEASE_VERSION }}-macos-universal
+          path: build/sp-differ-${{ env.RELEASE_VERSION }}-macos-universal.tar.gz
+          if-no-files-found: error
+          retention-days: 30

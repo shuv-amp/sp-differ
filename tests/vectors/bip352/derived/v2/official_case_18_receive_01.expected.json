@@ -1,0 +1,34 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 1,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "33ce085c3c11eaad13694aae3c20301a6c83382ec89a7cde96c6799e2f88805a",
+      "pub_key": "f207162b1a7abc51c42017bef055e9ec1efc3d3567cb720357e2b84325db33ac"
+    }
+  ],
+  "input_hash": "d9a9c2445c8384c1e916faef4a997f00852b877cc959dc69dc1d2bb631eb8f5b",
+  "input_pubkey_sum": "03853f51bef283502181e93238c8708ae27235dc51ae45a0c4053987c52fc6428b",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "038efbcbc1b0938fba3bf59fea1219a3c54b6d6f9107560da05001407adc13f413",
+  "source": {
+    "case_index": 18,
+    "comment": "Single recipient: use silent payments for sender change",
+    "entry_index": 1,
+    "id": "official_case_18_receive_01",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "0314bec14463d6c0181083d607fecfba67bb83f95915f6f247975ec566d5642ee8"
+}

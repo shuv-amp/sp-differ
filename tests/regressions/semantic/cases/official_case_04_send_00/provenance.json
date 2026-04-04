@@ -1,0 +1,18 @@
+{
+  "kind": "send",
+  "regression_id": "official_case_04_send_00",
+  "request_generated_from": {
+    "case_path": "tests/vectors/bip352/derived/v2/official_case_04_send_00.hex",
+    "expectation_path": "tests/vectors/bip352/derived/v2/official_case_04_send_00.expected.json"
+  },
+  "source": {
+    "case_index": 4,
+    "comment": "Outpoint ordering byte-lexicographically vs. vout-integer",
+    "entry_index": 0,
+    "id": "official_case_04_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "source_case_id": "official_case_04_send_00",
+  "tracked_reason": "Outpoint ordering byte-lexicographically vs. vout-integer"
+}

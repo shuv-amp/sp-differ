@@ -1,0 +1,56 @@
+{
+  "case_format_version": 2,
+  "expectation_hints": {
+    "detailed_outputs_required": true
+  },
+  "flags": 440,
+  "inputs": [
+    {
+      "input_type": "p2pkh",
+      "outpoint_txid": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "76a91419c2f3ae0ca3b642bd3e49598b8da89f50c1416188ac",
+      "privkey": null,
+      "pubkey": null,
+      "script_sig": "483046022100ad79e6801dd9a8727f342f31c71c4912866f59dc6e7981878e92c5844a0ce929022100fb0d2393e813968648b9753b7e9871d90ab3d815ebf91820d704b19f4ed224d621025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    },
+    {
+      "input_type": "p2pkh",
+      "outpoint_txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "76a9147cdd63cc408564188e8e472640e921c7c90e651d88ac",
+      "privkey": null,
+      "pubkey": null,
+      "script_sig": "473045022100a8c61b2d470e393279d1ba54f254b7c237de299580b7fa01ffcc940442ecec4502201afba952f4e4661c40acde7acc0341589031ba103a307b886eb867b23b850b972103782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    }
+  ],
+  "kind": "receive",
+  "labels": [
+    2,
+    3,
+    1001337
+  ],
+  "network": "mainnet",
+  "outputs_to_scan": [
+    "67626aebb3c4307cf0f6c39ca23247598fabf675ab783292eb2f81ae75ad1f8c"
+  ],
+  "receiver_keys": {
+    "scan_privkey": "0f694e068028a717f8af6b9411f9a133dd3565258714cc226594b34db90c1f2c",
+    "spend_privkey": "9d6ad855ce3417ef84e836892e5a56392bfba05fa5d97ccea30e266f540e08b3"
+  },
+  "seed": 5908722711110094080,
+  "semantic_adapter_request_version": 1,
+  "silent_payment_version": 0,
+  "source": {
+    "case_index": 13,
+    "comment": "Receiving with labels: label with odd parity",
+    "entry_index": 0,
+    "id": "official_case_13_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

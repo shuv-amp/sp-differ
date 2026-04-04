@@ -1,0 +1,26 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 0,
+  "found_outputs": [],
+  "input_hash": null,
+  "input_pubkey_sum": null,
+  "input_pubkeys": [],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "no_eligible_inputs",
+  "shared_secret": null,
+  "source": {
+    "case_index": 24,
+    "comment": "No valid inputs, sender generates no outputs",
+    "entry_index": 0,
+    "id": "official_case_24_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": null
+}

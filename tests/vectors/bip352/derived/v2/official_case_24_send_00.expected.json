@@ -1,0 +1,30 @@
+{
+  "acceptable_output_sets": [
+    []
+  ],
+  "case_format_version": 2,
+  "input_hash": null,
+  "input_private_key_sum": null,
+  "input_pubkeys": [],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    0
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "no_eligible_inputs",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": null
+    }
+  ],
+  "source": {
+    "case_index": 24,
+    "comment": "No valid inputs, sender generates no outputs",
+    "entry_index": 0,
+    "id": "official_case_24_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

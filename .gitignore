@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+__pycache__/
+*.pyc
+
+# Rust
+/target/
+workers/rust/target/
+workers/rust/Cargo.lock
+adapters/spdk_rust/target/
+adapters/silent_payments_rust/target/
+adapters/bip352_rust/target/
+adapters/bdk_sp_rust/target/
+adapters/go_bip352/adapter
+adapters/go_bip352/worker
+adapters/go_bip352/worker.h
+**/*.rs.bk
+.pytest_cache/
+
+# C/C++
+/build/
+/dist/
+*.o
+*.a
+*.so
+*.dylib
+*.egg-info/
+*.dSYM/
+workers/cpp/test_taproot_negation
+
+# Fuzzing outputs
+/crashers/
+/artifacts/
+/tmp/

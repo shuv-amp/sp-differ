@@ -1,0 +1,62 @@
+{
+  "case_format_version": 2,
+  "flags": 122,
+  "inputs": [
+    {
+      "input_type": "p2pkh",
+      "outpoint_txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "76a91419c2f3ae0ca3b642bd3e49598b8da89f50c1416188ac",
+      "privkey": "eadc78165ff1f8ea94ad7cfdc54990738a4c53f6e0507b42154201b8e5dff3b1",
+      "pubkey": null,
+      "script_sig": "483046022100ad79e6801dd9a8727f342f31c71c4912866f59dc6e7981878e92c5844a0ce929022100fb0d2393e813968648b9753b7e9871d90ab3d815ebf91820d704b19f4ed224d621025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    },
+    {
+      "input_type": "p2pkh",
+      "outpoint_txid": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "76a9144b92ac4ac6fe6212393894addda332f2e47a315688ac",
+      "privkey": "0378e95685b74565fa56751b84a32dfd18545d10d691641b8372e32164fad66a",
+      "pubkey": null,
+      "script_sig": "473045022100a8c61b2d470e393279d1ba54f254b7c237de299580b7fa01ffcc940442ecec4502201afba952f4e4661c40acde7acc0341589031ba103a307b886eb867b23b850b974104782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c3799373233387c5343bf58e23269e903335b958a12182f9849297321e8d710e49a8727129cab",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    },
+    {
+      "input_type": "p2wpkh",
+      "outpoint_txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "outpoint_vout": 1,
+      "prevout_script_pubkey": "00140423f731a07491364e8dce98b7c00bda63336950",
+      "privkey": "72b8ae09175ca7977f04993e651d88681ed932dfb92c5158cdf0161dd23fda6e",
+      "pubkey": null,
+      "script_sig": "",
+      "txinwitness": "02473045022100e7d26e77290b37128f5215ade25b9b908ce87cc9a4d498908b5bb8fd6daa1b8d022002568c3a8226f4f0436510283052bfb780b76f3fe4aa60c4c5eb118e43b187374104e0ec4f64b3fa2e463ccfcf4e856e37d5e1e20275bc89ec1def9eb098eff1f85d6fe8190e189be57d0d5bcd17dbcbcd04c9b4a1c5f605b10d5c90abfcc0d12884",
+      "txinwitness_stack": [
+        "3045022100e7d26e77290b37128f5215ade25b9b908ce87cc9a4d498908b5bb8fd6daa1b8d022002568c3a8226f4f0436510283052bfb780b76f3fe4aa60c4c5eb118e43b18737",
+        "04e0ec4f64b3fa2e463ccfcf4e856e37d5e1e20275bc89ec1def9eb098eff1f85d6fe8190e189be57d0d5bcd17dbcbcd04c9b4a1c5f605b10d5c90abfcc0d12884"
+      ]
+    }
+  ],
+  "kind": "send",
+  "network": "mainnet",
+  "recipient_groups": [
+    {
+      "count": 1,
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pubkey": "025cc9856d6f8375350e123978daac200c260cb5b5ae83106cab90484dcd8fcf36"
+    }
+  ],
+  "seed": 5980780305148024064,
+  "semantic_adapter_request_version": 1,
+  "silent_payment_version": 0,
+  "source": {
+    "case_index": 21,
+    "comment": "P2PKH and P2WPKH Uncompressed Keys are skipped",
+    "entry_index": 0,
+    "id": "official_case_21_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

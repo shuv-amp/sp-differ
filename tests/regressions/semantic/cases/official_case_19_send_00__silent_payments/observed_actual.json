@@ -1,0 +1,34 @@
+{
+  "acceptable_output_sets": [
+    [
+      "9e3c05ae387303bf7577a4e184bff21ebc21c3c098e630cca9e79e962e7b985d"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "7488bcb061b294f9936c6011f10e36b1a226fa0de98bdb1781d680dac829d852",
+  "input_private_key_sum": "fc8716a97a48ba9a05a98ae47b5cd201a25a7fd5d8b73c203c5f7b6b6b3b6ad7",
+  "input_pubkeys": [
+    "02782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "036f040608cd1e5ee79c54e78bea85904c895591f547beae080d0c5f6946c2730d"
+    }
+  ],
+  "source": {
+    "case_index": 19,
+    "comment": "Single recipient: taproot input with NUMS point",
+    "entry_index": 0,
+    "id": "official_case_19_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

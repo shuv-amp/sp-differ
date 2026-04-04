@@ -1,0 +1,123 @@
+{
+  "cases": [
+    {
+      "errors": [],
+      "expectation_path": "../../vectors/bip352/derived/v2/official_case_04_send_00.expected.json",
+      "id": "official_case_04_send_00",
+      "kind": "send",
+      "path": "../../vectors/bip352/derived/v2/official_case_04_send_00.hex",
+      "provenance_path": "cases/official_case_04_send_00/provenance.json",
+      "request_path": "cases/official_case_04_send_00/request.json",
+      "source": {
+        "case_index": 4,
+        "comment": "Outpoint ordering byte-lexicographically vs. vout-integer",
+        "entry_index": 0,
+        "id": "official_case_04_send_00",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_04_send_00"
+    },
+    {
+      "errors": [],
+      "expectation_path": "../../vectors/bip352/derived/v2/official_case_09_send_00.expected.json",
+      "id": "official_case_09_send_00",
+      "kind": "send",
+      "path": "../../vectors/bip352/derived/v2/official_case_09_send_00.hex",
+      "provenance_path": "cases/official_case_09_send_00/provenance.json",
+      "request_path": "cases/official_case_09_send_00/request.json",
+      "source": {
+        "case_index": 9,
+        "comment": "Single recipient: taproot input with odd y-value and non-taproot input",
+        "entry_index": 0,
+        "id": "official_case_09_send_00",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_09_send_00"
+    },
+    {
+      "errors": [],
+      "expectation_path": "../../vectors/bip352/derived/v2/official_case_11_send_00.expected.json",
+      "id": "official_case_11_send_00",
+      "kind": "send",
+      "path": "../../vectors/bip352/derived/v2/official_case_11_send_00.hex",
+      "provenance_path": "cases/official_case_11_send_00/provenance.json",
+      "request_path": "cases/official_case_11_send_00/request.json",
+      "source": {
+        "case_index": 11,
+        "comment": "Multiple outputs: multiple outputs, multiple recipients",
+        "entry_index": 0,
+        "id": "official_case_11_send_00",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_11_send_00"
+    },
+    {
+      "adapter_name": "silent-payments",
+      "errors": [
+        "actual acceptable_output_sets not accepted by expected contract"
+      ],
+      "expectation_path": "cases/official_case_19_send_00__silent_payments/expected.json",
+      "id": "official_case_19_send_00__silent_payments",
+      "kind": "send",
+      "observed_actual_path": "cases/official_case_19_send_00__silent_payments/observed_actual.json",
+      "observed_summary_path": "cases/official_case_19_send_00__silent_payments/observed_summary.json",
+      "path": "cases/official_case_19_send_00__silent_payments/case.hex",
+      "provenance_path": "cases/official_case_19_send_00__silent_payments/provenance.json",
+      "request_path": "cases/official_case_19_send_00__silent_payments/request.json",
+      "source": {
+        "case_index": 19,
+        "comment": "Single recipient: taproot input with NUMS point",
+        "entry_index": 0,
+        "id": "official_case_19_send_00",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_19_send_00"
+    },
+    {
+      "adapter_name": "silent-payments",
+      "errors": [
+        "actual acceptable_output_sets not accepted by expected contract"
+      ],
+      "expectation_path": "cases/official_case_21_send_00__silent_payments/expected.json",
+      "id": "official_case_21_send_00__silent_payments",
+      "kind": "send",
+      "observed_actual_path": "cases/official_case_21_send_00__silent_payments/observed_actual.json",
+      "observed_summary_path": "cases/official_case_21_send_00__silent_payments/observed_summary.json",
+      "path": "cases/official_case_21_send_00__silent_payments/case.hex",
+      "provenance_path": "cases/official_case_21_send_00__silent_payments/provenance.json",
+      "request_path": "cases/official_case_21_send_00__silent_payments/request.json",
+      "source": {
+        "case_index": 21,
+        "comment": "P2PKH and P2WPKH Uncompressed Keys are skipped",
+        "entry_index": 0,
+        "id": "official_case_21_send_00",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_21_send_00"
+    },
+    {
+      "errors": [],
+      "expectation_path": "../../vectors/bip352/derived/v2/official_case_25_receive_00.expected.json",
+      "id": "official_case_25_receive_00",
+      "kind": "receive",
+      "path": "../../vectors/bip352/derived/v2/official_case_25_receive_00.hex",
+      "provenance_path": "cases/official_case_25_receive_00/provenance.json",
+      "request_path": "cases/official_case_25_receive_00/request.json",
+      "source": {
+        "case_index": 25,
+        "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+        "entry_index": 0,
+        "id": "official_case_25_receive_00",
+        "kind": "receive",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_25_receive_00"
+    }
+  ],
+  "regression_manifest_version": 1
+}

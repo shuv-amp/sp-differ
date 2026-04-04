@@ -1,0 +1,35 @@
+{
+  "acceptable_output_sets": [
+    [
+      "77cab7dd12b10259ee82c6ea4b509774e33e7078e7138f568092241bf26b99f1"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "c166992ca52854ebb5008ebea00586a08b19aef88d74cb0235ffa4090f52e2ed",
+  "input_private_key_sum": "cda4ff9a3480e1fbfc6edd61b222f280f9baa0652002c1ffdb612efcc45d2ff2",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "028c8d23d4764feffcd5e72e380802540fa0f88e3d62ad5e0b47955f74d7b283c4"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "030e7f5ca4bf109fc35c8c2d878f756c891ac04c456cc5f0b05fcec4d3b2b1beb2"
+    }
+  ],
+  "source": {
+    "case_index": 7,
+    "comment": "Single recipient: taproot only with mixed even/odd y-values",
+    "entry_index": 0,
+    "id": "official_case_07_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sp-differ"
+version = "0.1.0"
+description = "Release-oriented CLI for the SP-DIFFER Silent Payments differential harness"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "UNLICENSED" }
+authors = [
+  { name = "SP-DIFFER maintainers" }
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: Other/Proprietary License",
+  "Operating System :: OS Independent",
+]
+
+[project.scripts]
+sp-differ = "sp_differ_cli:main"
+
+[tool.setuptools]
+py-modules = ["sp_differ_cli"]

@@ -1,0 +1,106 @@
+{
+  "acceptable_output_sets": [
+    [
+      "006a02c308ccdbf3ac49f0638f6de128f875db5a213095cf112b3b77722472ae",
+      "39f42624d5c32a77fda80ff0acee269afec601d3791803e80252ae04e4ffcf4c",
+      "ae1a780c04237bd577283c3ddb2e499767c3214160d5a6b0767e6b8c278bd701",
+      "ca64abe1e0f737823fb9a94f597eed418fb2df77b1317e26b881a14bb594faaa"
+    ],
+    [
+      "006a02c308ccdbf3ac49f0638f6de128f875db5a213095cf112b3b77722472ae",
+      "3edf1ff6657c6e69568811bd726a7a7f480493aa42161acfe8dd4f44521f99ed",
+      "7ee1543ed5d123ffa66fbebc128c020173eb490d5fa2ba306e0c9573a77db8f3",
+      "ca64abe1e0f737823fb9a94f597eed418fb2df77b1317e26b881a14bb594faaa"
+    ],
+    [
+      "006a02c308ccdbf3ac49f0638f6de128f875db5a213095cf112b3b77722472ae",
+      "7ee1543ed5d123ffa66fbebc128c020173eb490d5fa2ba306e0c9573a77db8f3",
+      "83dc944e61603137294829aed56c74c9b087d80f2c021b98a7fae5799000696c",
+      "ae1a780c04237bd577283c3ddb2e499767c3214160d5a6b0767e6b8c278bd701"
+    ],
+    [
+      "39f42624d5c32a77fda80ff0acee269afec601d3791803e80252ae04e4ffcf4c",
+      "3c54444944d176437644378c23efb999ab6ab1cacdfe1dc1537b607e3df330e2",
+      "ca64abe1e0f737823fb9a94f597eed418fb2df77b1317e26b881a14bb594faaa",
+      "f4569fc5f69c10f0082cfbb8e072e6266ec55f69fba8cffca4cbb4c144b7e59b"
+    ],
+    [
+      "39f42624d5c32a77fda80ff0acee269afec601d3791803e80252ae04e4ffcf4c",
+      "ae1a780c04237bd577283c3ddb2e499767c3214160d5a6b0767e6b8c278bd701",
+      "f207162b1a7abc51c42017bef055e9ec1efc3d3567cb720357e2b84325db33ac",
+      "f4569fc5f69c10f0082cfbb8e072e6266ec55f69fba8cffca4cbb4c144b7e59b"
+    ],
+    [
+      "3c54444944d176437644378c23efb999ab6ab1cacdfe1dc1537b607e3df330e2",
+      "602e10e6944107c9b48bd885b493676578c935723287e0ab2f8b7f136862568e",
+      "7ee1543ed5d123ffa66fbebc128c020173eb490d5fa2ba306e0c9573a77db8f3",
+      "ca64abe1e0f737823fb9a94f597eed418fb2df77b1317e26b881a14bb594faaa"
+    ],
+    [
+      "3c54444944d176437644378c23efb999ab6ab1cacdfe1dc1537b607e3df330e2",
+      "7ee1543ed5d123ffa66fbebc128c020173eb490d5fa2ba306e0c9573a77db8f3",
+      "83dc944e61603137294829aed56c74c9b087d80f2c021b98a7fae5799000696c",
+      "f4569fc5f69c10f0082cfbb8e072e6266ec55f69fba8cffca4cbb4c144b7e59b"
+    ],
+    [
+      "3edf1ff6657c6e69568811bd726a7a7f480493aa42161acfe8dd4f44521f99ed",
+      "7ee1543ed5d123ffa66fbebc128c020173eb490d5fa2ba306e0c9573a77db8f3",
+      "f207162b1a7abc51c42017bef055e9ec1efc3d3567cb720357e2b84325db33ac",
+      "f4569fc5f69c10f0082cfbb8e072e6266ec55f69fba8cffca4cbb4c144b7e59b"
+    ],
+    [
+      "3edf1ff6657c6e69568811bd726a7a7f480493aa42161acfe8dd4f44521f99ed",
+      "ca64abe1e0f737823fb9a94f597eed418fb2df77b1317e26b881a14bb594faaa",
+      "e976a58fbd38aeb4e6093d4df02e9c1de0c4513ae0c588cef68cda5b2f8834ca",
+      "f4569fc5f69c10f0082cfbb8e072e6266ec55f69fba8cffca4cbb4c144b7e59b"
+    ],
+    [
+      "602e10e6944107c9b48bd885b493676578c935723287e0ab2f8b7f136862568e",
+      "7ee1543ed5d123ffa66fbebc128c020173eb490d5fa2ba306e0c9573a77db8f3",
+      "ae1a780c04237bd577283c3ddb2e499767c3214160d5a6b0767e6b8c278bd701",
+      "f207162b1a7abc51c42017bef055e9ec1efc3d3567cb720357e2b84325db33ac"
+    ],
+    [
+      "602e10e6944107c9b48bd885b493676578c935723287e0ab2f8b7f136862568e",
+      "ae1a780c04237bd577283c3ddb2e499767c3214160d5a6b0767e6b8c278bd701",
+      "ca64abe1e0f737823fb9a94f597eed418fb2df77b1317e26b881a14bb594faaa",
+      "e976a58fbd38aeb4e6093d4df02e9c1de0c4513ae0c588cef68cda5b2f8834ca"
+    ],
+    [
+      "83dc944e61603137294829aed56c74c9b087d80f2c021b98a7fae5799000696c",
+      "ae1a780c04237bd577283c3ddb2e499767c3214160d5a6b0767e6b8c278bd701",
+      "e976a58fbd38aeb4e6093d4df02e9c1de0c4513ae0c588cef68cda5b2f8834ca",
+      "f4569fc5f69c10f0082cfbb8e072e6266ec55f69fba8cffca4cbb4c144b7e59b"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "d9a9c2445c8384c1e916faef4a997f00852b877cc959dc69dc1d2bb631eb8f5b",
+  "input_private_key_sum": "ee55616ce5a93e508f03f21949ecbe70a2a0b107b6e1df5d98b4e4da4adaca1b",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+  ],
+  "kind": "send",
+  "notes": [
+    "multiple_valid_output_sets"
+  ],
+  "output_count_options": [
+    4
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "038efbcbc1b0938fba3bf59fea1219a3c54b6d6f9107560da05001407adc13f413"
+    }
+  ],
+  "source": {
+    "case_index": 17,
+    "comment": "Multiple outputs with labels: un-labeled, labeled, and multiple outputs for labeled address; same recipients",
+    "entry_index": 0,
+    "id": "official_case_17_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

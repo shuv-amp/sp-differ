@@ -1,0 +1,53 @@
+{
+  "case_format_version": 2,
+  "flags": 122,
+  "inputs": [
+    {
+      "input_type": "p2pkh",
+      "outpoint_txid": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "76a91419c2f3ae0ca3b642bd3e49598b8da89f50c1416188ac",
+      "privkey": "eadc78165ff1f8ea94ad7cfdc54990738a4c53f6e0507b42154201b8e5dff3b1",
+      "pubkey": null,
+      "script_sig": "483046022100ad79e6801dd9a8727f342f31c71c4912866f59dc6e7981878e92c5844a0ce929022100fb0d2393e813968648b9753b7e9871d90ab3d815ebf91820d704b19f4ed224d621025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    },
+    {
+      "input_type": "p2pkh",
+      "outpoint_txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "outpoint_vout": 0,
+      "prevout_script_pubkey": "76a9147cdd63cc408564188e8e472640e921c7c90e651d88ac",
+      "privkey": "0378e95685b74565fa56751b84a32dfd18545d10d691641b8372e32164fad66a",
+      "pubkey": null,
+      "script_sig": "473045022100a8c61b2d470e393279d1ba54f254b7c237de299580b7fa01ffcc940442ecec4502201afba952f4e4661c40acde7acc0341589031ba103a307b886eb867b23b850b972103782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    }
+  ],
+  "kind": "send",
+  "network": "mainnet",
+  "recipient_groups": [
+    {
+      "count": 1,
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pubkey": "03a6739499dc667d308baefea4de0c4a85cc72aece181bc05712d3919662610ff1"
+    },
+    {
+      "count": 1,
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "spend_pubkey": "025cc9856d6f8375350e123978daac200c260cb5b5ae83106cab90484dcd8fcf36"
+    }
+  ],
+  "seed": 5980780305148022528,
+  "semantic_adapter_request_version": 1,
+  "silent_payment_version": 0,
+  "source": {
+    "case_index": 15,
+    "comment": "Multiple outputs with labels: un-labeled and labeled address; same recipient",
+    "entry_index": 0,
+    "id": "official_case_15_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

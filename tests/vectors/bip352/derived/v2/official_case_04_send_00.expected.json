@@ -1,0 +1,35 @@
+{
+  "acceptable_output_sets": [
+    [
+      "a85ef8701394b517a4b35217c4bd37ac01ebeed4b008f8d0879f9e09ba95319c"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "7b5d088a00348fa9990f16927148b92a622c2e53f966c857c1782f83242a1a89",
+  "input_private_key_sum": "7ed265a6dac7aba8508a32d6d6b84c7f1dbd0a0941dd01088d69e8d556345f86",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03bd85685d03d111699b15d046319febe77f8de5286e9e512703cdee1bf3be3792"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "02cb25a6e7c9b7c6d550e0413da63834678465b5e80853a51d0335d318296ac182"
+    }
+  ],
+  "source": {
+    "case_index": 4,
+    "comment": "Outpoint ordering byte-lexicographically vs. vout-integer",
+    "entry_index": 0,
+    "id": "official_case_04_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

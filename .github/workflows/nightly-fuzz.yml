@@ -1,0 +1,84 @@
+name: Nightly Semantic Fuzz
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  DEFAULT_PYTHON_VERSION: "3.11"
+
+jobs:
+  semantic-fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: spdk
+            make_target: fuzz-semantic-spdk
+            report_prefix: spdk
+          - name: silent-payments
+            make_target: fuzz-semantic-silent-payments
+            report_prefix: silent_payments
+          - name: bip352
+            make_target: fuzz-semantic-bip352
+            report_prefix: bip352
+          - name: go-bip352
+            make_target: fuzz-semantic-go-bip352
+            report_prefix: go_bip352
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: adapters/go_bip352/go.mod
+
+      - name: Longer deterministic semantic-worker fuzz
+        run: make ${{ matrix.make_target }}
+        env:
+          FUZZ_SEED: 352
+          FUZZ_STRUCTURED_ITERATIONS: 256
+          FUZZ_RAW_ITERATIONS: 256
+
+      - name: Package nightly fuzz artifacts
+        if: always()
+        run: |
+          python scripts/package_ci_artifacts.py \
+            --label nightly-fuzz-${{ matrix.name }} \
+            --output build/ci_artifacts/nightly-fuzz-${{ matrix.name }}.tar \
+            --path build/${{ matrix.report_prefix }}_semantic_fuzz_report.json \
+            --path build/${{ matrix.report_prefix }}_semantic_fuzz_report.md \
+            --path build/${{ matrix.report_prefix }}_semantic_fuzz_artifacts \
+            --path fuzz/corpus/semantic_worker/manifest.json
+
+      - name: Upload nightly fuzz artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-fuzz-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/ci_artifacts/nightly-fuzz-${{ matrix.name }}.tar
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,36 @@
+{
+  "acceptable_output_sets": [
+    [
+      "4612cdbf845c66c7511d70aab4d9aed11e49e48cdb8d799d787101cdd0d53e4f"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "aade43188c62354b11952d20585f2cf94aaf3d4451e98c3bd9f71a1d6b0ce5ef",
+  "input_private_key_sum": "610e0f75fd05e5e80e088b57af0a46da06cb0700c0c5907aa6d29c6b4ce46348",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338",
+    "02e0ec4f64b3fa2e463ccfcf4e856e37d5e1e20275bc89ec1def9eb098eff1f85d"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "034773b97ccad9791cb4213964ff9896ccd6581ee69345de5d114786d9d86b03a2"
+    }
+  ],
+  "source": {
+    "case_index": 20,
+    "comment": "Pubkey extraction from malleated p2pkh",
+    "entry_index": 0,
+    "id": "official_case_20_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

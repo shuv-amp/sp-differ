@@ -1,0 +1,66 @@
+{
+  "fetched_at_utc": "2026-03-28T14:00:54Z",
+  "receiving_entry_count": 28,
+  "reference_bundle": [
+    {
+      "path": "reference/reference.py",
+      "sha256": "7833e1608aeb05604f76216877a807b892cde300ccc886aec4ab60304b68e897",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/reference.py",
+      "upstream_relative_path": "bip-0352/reference.py"
+    },
+    {
+      "path": "reference/bitcoin_utils.py",
+      "sha256": "29d2ab25aa645a26ed49efb70040cb485f1efd02277d6aa97630316e2aba9089",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/bitcoin_utils.py",
+      "upstream_relative_path": "bip-0352/bitcoin_utils.py"
+    },
+    {
+      "path": "reference/bech32m.py",
+      "sha256": "b38e16a9a2f3960945773ccad020d15cd27dd1871c5a9dd26147a8fa9b14df5b",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/bech32m.py",
+      "upstream_relative_path": "bip-0352/bech32m.py"
+    },
+    {
+      "path": "reference/ripemd160.py",
+      "sha256": "99da6dafa9804d3ca5490a736354027b10ec3d517206caad6ea28c0e097f6b9a",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/ripemd160.py",
+      "upstream_relative_path": "bip-0352/ripemd160.py"
+    },
+    {
+      "path": "reference/secp256k1lab/COPYING",
+      "sha256": "8f13f6dc042fbc546d7217ed87f1639a9f95ba8ba0248364899564c5d4f32576",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/secp256k1lab/COPYING",
+      "upstream_relative_path": "bip-0352/secp256k1lab/COPYING"
+    },
+    {
+      "path": "reference/secp256k1lab/src/secp256k1lab/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/secp256k1lab/src/secp256k1lab/__init__.py",
+      "upstream_relative_path": "bip-0352/secp256k1lab/src/secp256k1lab/__init__.py"
+    },
+    {
+      "path": "reference/secp256k1lab/src/secp256k1lab/bip340.py",
+      "sha256": "428ee8110175b32b67d22a88efe07a44cede2419d0f547949164f2a8f9d76b96",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/secp256k1lab/src/secp256k1lab/bip340.py",
+      "upstream_relative_path": "bip-0352/secp256k1lab/src/secp256k1lab/bip340.py"
+    },
+    {
+      "path": "reference/secp256k1lab/src/secp256k1lab/secp256k1.py",
+      "sha256": "3a3316ea6717f8dd6d89eb65e80a09265551955d5c9eb872fae3e12504cc63b0",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/secp256k1lab/src/secp256k1lab/secp256k1.py",
+      "upstream_relative_path": "bip-0352/secp256k1lab/src/secp256k1lab/secp256k1.py"
+    },
+    {
+      "path": "reference/secp256k1lab/src/secp256k1lab/util.py",
+      "sha256": "3aeccf814f0bd67cdfb0791a6bf054b367c580942acd44942fdf505e5a1af707",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/secp256k1lab/src/secp256k1lab/util.py",
+      "upstream_relative_path": "bip-0352/secp256k1lab/src/secp256k1lab/util.py"
+    }
+  ],
+  "reference_source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/reference.py",
+  "sending_entry_count": 27,
+  "sha256": "5d43f942c8058f244d6422133dd6b078a5c21c3c702fa7a51b41b24c951709c9",
+  "source": "https://raw.githubusercontent.com/bitcoin/bips/805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8/bip-0352/send_and_receive_test_vectors.json",
+  "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8",
+  "vector_case_count": 27
+}

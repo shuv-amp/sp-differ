@@ -1,0 +1,34 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 1,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "c8ac0292997b5bca98b3ebd99a57e253071137550f270452cd3df8a3e2266d36",
+      "pub_key": "a85ef8701394b517a4b35217c4bd37ac01ebeed4b008f8d0879f9e09ba95319c"
+    }
+  ],
+  "input_hash": "7b5d088a00348fa9990f16927148b92a622c2e53f966c857c1782f83242a1a89",
+  "input_pubkey_sum": "032562c1ab2d6bd45d7ca4d78f569999e5333dffd3ac5263924fd00d00dedc4bee",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "03bd85685d03d111699b15d046319febe77f8de5286e9e512703cdee1bf3be3792"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "02cb25a6e7c9b7c6d550e0413da63834678465b5e80853a51d0335d318296ac182",
+  "source": {
+    "case_index": 4,
+    "comment": "Outpoint ordering byte-lexicographically vs. vout-integer",
+    "entry_index": 0,
+    "id": "official_case_04_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "031f9a80d0938cf980b51f7cc4fad713d49037f430646dff129c0570d75a40d8f0"
+}

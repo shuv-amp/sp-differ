@@ -1,0 +1,18 @@
+{
+  "kind": "receive",
+  "regression_id": "official_case_25_receive_00",
+  "request_generated_from": {
+    "case_path": "tests/vectors/bip352/derived/v2/official_case_25_receive_00.hex",
+    "expectation_path": "tests/vectors/bip352/derived/v2/official_case_25_receive_00.expected.json"
+  },
+  "source": {
+    "case_index": 25,
+    "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+    "entry_index": 0,
+    "id": "official_case_25_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "source_case_id": "official_case_25_receive_00",
+  "tracked_reason": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx"
+}

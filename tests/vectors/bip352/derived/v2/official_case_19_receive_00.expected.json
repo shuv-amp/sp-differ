@@ -1,0 +1,33 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 1,
+  "found_outputs": [
+    {
+      "priv_key_tweak": "3ddec3232609d348d6b8b53123b4f40f6d4f5398ca586f087b0416ec3b851496",
+      "pub_key": "79e79897c52935bfd97fc6e076a6431a0c7543ca8c31e0fc3cf719bb572c842d"
+    }
+  ],
+  "input_hash": "7488bcb061b294f9936c6011f10e36b1a226fa0de98bdb1781d680dac829d852",
+  "input_pubkey_sum": "02782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338",
+  "input_pubkeys": [
+    "02782eeb913431ca6e9b8c2fd80a5f72ed2024ef72a3c6fb10263c379937323338"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "shared_secret": "036f040608cd1e5ee79c54e78bea85904c895591f547beae080d0c5f6946c2730d",
+  "source": {
+    "case_index": 19,
+    "comment": "Single recipient: taproot input with NUMS point",
+    "entry_index": 0,
+    "id": "official_case_19_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": "02213b872c9a6ee28a0d861384a1b3e3ec7257f4855ed09b4323e3899f3b028989"
+}

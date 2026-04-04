@@ -1,0 +1,22 @@
+{
+  "actual_sha256": "3fc594b6c51c7bf5f7be96ae57c6829974201b5a0a028d6ea53a0f4b7d2b28cd",
+  "adapter_name": "silent-payments",
+  "captured_from_artifact_dir": "build/silent_payments_semantic_adapter_artifacts/official_case_21_send_00",
+  "case_sha256": "0b27e46185db86075978342b2571ed27ac66c4d6c8d1b5fae2a8e0f62aa7dfee",
+  "errors": [
+    "actual acceptable_output_sets not accepted by expected contract"
+  ],
+  "expected_sha256": "407dec421afcde75cd84a8a2b3dc14292c6e0e63787e2769cd46c55cb35595f4",
+  "kind": "send",
+  "regression_id": "official_case_21_send_00__silent_payments",
+  "repro_cmd": "python3 scripts/run_semantic_adapter_cases.py --adapter-name silent-payments --adapter-cmd ./adapters/silent_payments_rust/target/debug/sp-differ-semantic-adapter-silent-payments --case-id official_case_21_send_00 --timeout-seconds 30.0 --json-out build/silent_payments_semantic_adapter_artifacts/official_case_21_send_00/replay_report.json",
+  "source": {
+    "case_index": 21,
+    "comment": "P2PKH and P2WPKH Uncompressed Keys are skipped",
+    "entry_index": 0,
+    "id": "official_case_21_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "source_case_id": "official_case_21_send_00"
+}

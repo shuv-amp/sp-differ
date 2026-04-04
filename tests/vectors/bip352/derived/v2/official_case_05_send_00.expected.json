@@ -1,0 +1,35 @@
+{
+  "acceptable_output_sets": [
+    [
+      "548ae55c8eec1e736e8d3e520f011f1f42a56d166116ad210b3937599f87f566"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "37245a9f8355f4064f385fefeac00c022952acc75e5caec6321f066e113397b4",
+  "input_private_key_sum": "d5b8f02cbfe3f1d5295af9fb8a9320e859e9cb07115856486ab1a4e4fb89a621",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5",
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "02f6b40ff17f4010fe732ac4b0f2f211281aa09c9a5fb41f1c151ec2606fee9ec2"
+    }
+  ],
+  "source": {
+    "case_index": 5,
+    "comment": "Single recipient: multiple UTXOs from the same public key",
+    "entry_index": 0,
+    "id": "official_case_05_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

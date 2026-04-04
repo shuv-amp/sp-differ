@@ -1,0 +1,34 @@
+{
+  "acceptable_output_sets": [
+    [
+      "67fee277da9e8542b5d2e6f32d660a9bbd3f0e107c2d53638ab1d869088882d6"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "9be481e9efc788e2344fbbacc42db86d5e191a4269cace545bb847bdbb251bfc",
+  "input_private_key_sum": "eadc78165ff1f8ea94ad7cfdc54990738a4c53f6e0507b42154201b8e5dff3b1",
+  "input_pubkeys": [
+    "025a1e61f898173040e20616d43e9f496fba90338a39faa1ed98fcbaeee4dd9be5"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0220bcfac5b99e04ad1a06ddfb016ee13582609d60b6291e98d01a9bc9a16c96d4",
+      "shared_secret": "0295a54c359da5b2640601ddbedb26e040cb97b6a3432e60b76d1258e85f72fa64"
+    }
+  ],
+  "source": {
+    "case_index": 21,
+    "comment": "P2PKH and P2WPKH Uncompressed Keys are skipped",
+    "entry_index": 0,
+    "id": "official_case_21_send_00",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

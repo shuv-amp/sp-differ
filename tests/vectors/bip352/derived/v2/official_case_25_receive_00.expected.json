@@ -1,0 +1,29 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 0,
+  "found_outputs": [],
+  "input_hash": null,
+  "input_pubkey_sum": null,
+  "input_pubkeys": [
+    "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+    "03557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+  ],
+  "kind": "receive",
+  "notes": [],
+  "receiving_addresses": [
+    "sp1qqtrqglu5g8kh6mfsg4qxa9wq0nv9cauwfwxw70984wkqnw2uwz0w2qnehen8a7wuhwk9tgrzjh8gwzc8q2dlekedec5djk0js9d3d7qhnq6lqj3s"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "point_at_infinity",
+  "shared_secret": null,
+  "source": {
+    "case_index": 25,
+    "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+    "entry_index": 0,
+    "id": "official_case_25_receive_00",
+    "kind": "receive",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  },
+  "tweak": null
+}

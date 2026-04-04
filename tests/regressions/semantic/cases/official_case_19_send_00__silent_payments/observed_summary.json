@@ -1,0 +1,18 @@
+{
+  "actual_path": "build/silent_payments_semantic_adapter_artifacts/official_case_19_send_00/actual.json",
+  "adapter_name": "silent-payments",
+  "case_path": "tests/vectors/bip352/derived/v2/official_case_19_send_00.hex",
+  "errors": [
+    "actual acceptable_output_sets not accepted by expected contract"
+  ],
+  "expectation_path": "tests/vectors/bip352/derived/v2/official_case_19_send_00.expected.json",
+  "expected_path": "build/silent_payments_semantic_adapter_artifacts/official_case_19_send_00/expected.json",
+  "id": "official_case_19_send_00",
+  "repro_cmd": "python3 scripts/run_semantic_adapter_cases.py --adapter-name silent-payments --adapter-cmd ./adapters/silent_payments_rust/target/debug/sp-differ-semantic-adapter-silent-payments --case-id official_case_19_send_00 --timeout-seconds 30.0 --json-out build/silent_payments_semantic_adapter_artifacts/official_case_19_send_00/replay_report.json",
+  "repro_target_args": [
+    "--adapter-cmd",
+    "./adapters/silent_payments_rust/target/debug/sp-differ-semantic-adapter-silent-payments"
+  ],
+  "request_path": "build/silent_payments_semantic_adapter_artifacts/official_case_19_send_00/request.json",
+  "timeout_seconds": 30.0
+}

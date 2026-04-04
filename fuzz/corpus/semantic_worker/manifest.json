@@ -1,0 +1,450 @@
+{
+  "generated_from": {
+    "derived_manifest": "tests/vectors/bip352/derived/v2/manifest.json",
+    "regression_manifest": "tests/regressions/semantic/manifest.json"
+  },
+  "invalid": [
+    {
+      "description": "empty payload",
+      "id": "empty_input",
+      "path": "invalid/empty_input.bin"
+    },
+    {
+      "description": "non-UTF8 payload",
+      "id": "bad_utf8",
+      "path": "invalid/bad_utf8.bin"
+    },
+    {
+      "description": "truncated JSON object",
+      "id": "truncated_json",
+      "path": "invalid/truncated_json.bin"
+    },
+    {
+      "description": "JSON value that is not an object",
+      "id": "non_object_json",
+      "path": "invalid/non_object_json.bin"
+    },
+    {
+      "description": "unsupported request version",
+      "id": "wrong_version",
+      "path": "invalid/wrong_version.json"
+    },
+    {
+      "description": "missing kind field",
+      "id": "missing_kind",
+      "path": "invalid/missing_kind.json"
+    },
+    {
+      "description": "invalid hex field",
+      "id": "invalid_hex",
+      "path": "invalid/invalid_hex.json"
+    },
+    {
+      "description": "unknown network field",
+      "id": "wrong_network",
+      "path": "invalid/wrong_network.json"
+    }
+  ],
+  "semantic_worker_corpus_version": 1,
+  "valid": [
+    {
+      "id": "official_case_00_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_00_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex"
+    },
+    {
+      "id": "official_case_00_send_00",
+      "kind": "send",
+      "path": "valid/official_case_00_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex"
+    },
+    {
+      "id": "official_case_01_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_01_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_01_receive_00.hex"
+    },
+    {
+      "id": "official_case_01_send_00",
+      "kind": "send",
+      "path": "valid/official_case_01_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_01_send_00.hex"
+    },
+    {
+      "id": "official_case_02_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_02_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_02_receive_00.hex"
+    },
+    {
+      "id": "official_case_02_send_00",
+      "kind": "send",
+      "path": "valid/official_case_02_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_02_send_00.hex"
+    },
+    {
+      "id": "official_case_03_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_03_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_03_receive_00.hex"
+    },
+    {
+      "id": "official_case_03_send_00",
+      "kind": "send",
+      "path": "valid/official_case_03_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_03_send_00.hex"
+    },
+    {
+      "id": "official_case_04_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_04_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_04_receive_00.hex"
+    },
+    {
+      "id": "official_case_04_send_00",
+      "kind": "send",
+      "path": "valid/official_case_04_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_04_send_00.hex"
+    },
+    {
+      "id": "official_case_05_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_05_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_05_receive_00.hex"
+    },
+    {
+      "id": "official_case_05_send_00",
+      "kind": "send",
+      "path": "valid/official_case_05_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_05_send_00.hex"
+    },
+    {
+      "id": "official_case_06_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_06_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_06_receive_00.hex"
+    },
+    {
+      "id": "official_case_06_send_00",
+      "kind": "send",
+      "path": "valid/official_case_06_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_06_send_00.hex"
+    },
+    {
+      "id": "official_case_07_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_07_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_07_receive_00.hex"
+    },
+    {
+      "id": "official_case_07_send_00",
+      "kind": "send",
+      "path": "valid/official_case_07_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_07_send_00.hex"
+    },
+    {
+      "id": "official_case_08_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_08_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_08_receive_00.hex"
+    },
+    {
+      "id": "official_case_08_send_00",
+      "kind": "send",
+      "path": "valid/official_case_08_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_08_send_00.hex"
+    },
+    {
+      "id": "official_case_09_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_09_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_09_receive_00.hex"
+    },
+    {
+      "id": "official_case_09_send_00",
+      "kind": "send",
+      "path": "valid/official_case_09_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_09_send_00.hex"
+    },
+    {
+      "id": "official_case_10_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_10_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_10_receive_00.hex"
+    },
+    {
+      "id": "official_case_10_send_00",
+      "kind": "send",
+      "path": "valid/official_case_10_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_10_send_00.hex"
+    },
+    {
+      "id": "official_case_11_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_11_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_11_receive_00.hex"
+    },
+    {
+      "id": "official_case_11_send_00",
+      "kind": "send",
+      "path": "valid/official_case_11_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_11_send_00.hex"
+    },
+    {
+      "id": "official_case_12_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_12_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_12_receive_00.hex"
+    },
+    {
+      "id": "official_case_12_send_00",
+      "kind": "send",
+      "path": "valid/official_case_12_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_12_send_00.hex"
+    },
+    {
+      "id": "official_case_13_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_13_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_13_receive_00.hex"
+    },
+    {
+      "id": "official_case_13_send_00",
+      "kind": "send",
+      "path": "valid/official_case_13_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_13_send_00.hex"
+    },
+    {
+      "id": "official_case_14_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_14_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_14_receive_00.hex"
+    },
+    {
+      "id": "official_case_14_send_00",
+      "kind": "send",
+      "path": "valid/official_case_14_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_14_send_00.hex"
+    },
+    {
+      "id": "official_case_15_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_15_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_15_receive_00.hex"
+    },
+    {
+      "id": "official_case_15_send_00",
+      "kind": "send",
+      "path": "valid/official_case_15_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_15_send_00.hex"
+    },
+    {
+      "id": "official_case_16_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_16_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_16_receive_00.hex"
+    },
+    {
+      "id": "official_case_16_send_00",
+      "kind": "send",
+      "path": "valid/official_case_16_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_16_send_00.hex"
+    },
+    {
+      "id": "official_case_17_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_17_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_17_receive_00.hex"
+    },
+    {
+      "id": "official_case_17_send_00",
+      "kind": "send",
+      "path": "valid/official_case_17_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_17_send_00.hex"
+    },
+    {
+      "id": "official_case_18_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_18_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_18_receive_00.hex"
+    },
+    {
+      "id": "official_case_18_receive_01",
+      "kind": "receive",
+      "path": "valid/official_case_18_receive_01.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_18_receive_01.hex"
+    },
+    {
+      "id": "official_case_18_send_00",
+      "kind": "send",
+      "path": "valid/official_case_18_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_18_send_00.hex"
+    },
+    {
+      "id": "official_case_19_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_19_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_19_receive_00.hex"
+    },
+    {
+      "id": "official_case_19_send_00",
+      "kind": "send",
+      "path": "valid/official_case_19_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_19_send_00.hex"
+    },
+    {
+      "id": "official_case_19_send_00__silent_payments",
+      "kind": "send",
+      "path": "valid/regression_official_case_19_send_00__silent_payments.json",
+      "source": "semantic-regression",
+      "source_case_path": "tests/regressions/semantic/cases/official_case_19_send_00__silent_payments/case.hex"
+    },
+    {
+      "id": "official_case_20_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_20_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_20_receive_00.hex"
+    },
+    {
+      "id": "official_case_20_send_00",
+      "kind": "send",
+      "path": "valid/official_case_20_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_20_send_00.hex"
+    },
+    {
+      "id": "official_case_21_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_21_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_21_receive_00.hex"
+    },
+    {
+      "id": "official_case_21_send_00",
+      "kind": "send",
+      "path": "valid/official_case_21_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_21_send_00.hex"
+    },
+    {
+      "id": "official_case_21_send_00__silent_payments",
+      "kind": "send",
+      "path": "valid/regression_official_case_21_send_00__silent_payments.json",
+      "source": "semantic-regression",
+      "source_case_path": "tests/regressions/semantic/cases/official_case_21_send_00__silent_payments/case.hex"
+    },
+    {
+      "id": "official_case_22_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_22_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_22_receive_00.hex"
+    },
+    {
+      "id": "official_case_22_send_00",
+      "kind": "send",
+      "path": "valid/official_case_22_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_22_send_00.hex"
+    },
+    {
+      "id": "official_case_23_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_23_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_23_receive_00.hex"
+    },
+    {
+      "id": "official_case_23_send_00",
+      "kind": "send",
+      "path": "valid/official_case_23_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_23_send_00.hex"
+    },
+    {
+      "id": "official_case_24_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_24_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_24_receive_00.hex"
+    },
+    {
+      "id": "official_case_24_send_00",
+      "kind": "send",
+      "path": "valid/official_case_24_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_24_send_00.hex"
+    },
+    {
+      "id": "official_case_25_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_25_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_25_receive_00.hex"
+    },
+    {
+      "id": "official_case_25_send_00",
+      "kind": "send",
+      "path": "valid/official_case_25_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_25_send_00.hex"
+    },
+    {
+      "id": "official_case_26_receive_00",
+      "kind": "receive",
+      "path": "valid/official_case_26_receive_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_26_receive_00.hex"
+    },
+    {
+      "id": "official_case_26_send_00",
+      "kind": "send",
+      "path": "valid/official_case_26_send_00.json",
+      "source": "derived-v2",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_26_send_00.hex"
+    }
+  ]
+}
