@@ -138,7 +138,7 @@ The harness has two execution paths. The v1 byte-worker path runs the C++ and Ru
 
 ## Known Scope
 
-The v1 byte-worker handles P2WPKH, P2TR keypath, and P2SH-P2WPKH input types. P2PKH is not implemented in the v1 worker. The v2 semantic path covers P2PKH through the reference adapter.
+The v1 byte-worker handles P2WPKH, P2TR keypath, and P2SH-P2WPKH input types. P2PKH is not implemented in the v1 worker. The v1 path is retained for byte-worker parity checks; the broader BIP352 coverage lives in the v2 semantic path. The v2 semantic path covers P2PKH through the reference adapter.
 
 ## Repository Layout
 
@@ -217,7 +217,7 @@ SP-DIFFER is a testing framework. It is not a wallet and it does not handle prod
 
 Treat the Silent Payments `ScanSecretKey` exactly like wallet seed material. Anyone who obtains it can correlate and recover wallet-relevant scanning state. The compiled CLI therefore writes exported private keys only to explicit output files and does not print them to stdout during normal operation.
 
-For serious measurements and any key-handling workflow, prefer the stripped `-O3` binaries from `make release` or targets that already depend on `build/release/`. That is not a substitute for constant-time review, but it avoids benchmarking or exporting from a slower debug-style build with extra symbol noise.
+For performance measurements or release verification, prefer the binaries produced by `make release` so the measured artifacts match the packaged release build. This does not imply any constant-time or side-channel guarantee.
 
 ## License
 
