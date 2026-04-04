@@ -19,6 +19,7 @@ defaults:
 
 env:
   RELEASE_VERSION: ${{ github.ref_name }}
+  RELEASE_SIGNING_ENABLED: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
 
 jobs:
   gatekeeper:
@@ -89,7 +90,7 @@ jobs:
           cp build/release_integrity.md "$dist/"
 
       - name: Import release signing key
-        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        if: ${{ env.RELEASE_SIGNING_ENABLED == 'true' }}
         env:
           RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
         run: |
@@ -101,7 +102,7 @@ jobs:
           rm -f "$key_file"
 
       - name: Generate signed checksums
-        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        if: ${{ env.RELEASE_SIGNING_ENABLED == 'true' }}
         env:
           GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
         run: |
@@ -111,7 +112,7 @@ jobs:
             --gpg-key "${{ secrets.RELEASE_GPG_KEY_ID }}"
 
       - name: Generate unsigned checksums
-        if: ${{ !(secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '') }}
+        if: ${{ env.RELEASE_SIGNING_ENABLED != 'true' }}
         run: |
           ./scripts/sign_release.sh \
             --input-dir "build/dist/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}" \
@@ -148,7 +149,7 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            runs-on: macos-13
+            runs-on: macos-15-intel
           - arch: arm64
             runs-on: macos-14
     steps:
@@ -226,12 +227,15 @@ jobs:
 
       - name: Verify universal CLI integrity metadata
         run: |
-          ./build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/sp_differ_cli --check-integrity \
-            --json-out build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/release_integrity.json \
-            --markdown-out build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/release_integrity.md
+          cli_path="./build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/sp_differ_cli"
+          json_path="build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/release_integrity.json"
+          markdown_path="build/dist/sp-differ-${RELEASE_VERSION}-macos-universal/release_integrity.md"
+          "$cli_path" --check-integrity \
+            --json-out "$json_path" \
+            --markdown-out "$markdown_path"
 
       - name: Import release signing key
-        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        if: ${{ env.RELEASE_SIGNING_ENABLED == 'true' }}
         env:
           RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
         run: |
@@ -243,7 +247,7 @@ jobs:
           rm -f "$key_file"
 
       - name: Generate signed checksums
-        if: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
+        if: ${{ env.RELEASE_SIGNING_ENABLED == 'true' }}
         env:
           GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
         run: |
@@ -253,7 +257,7 @@ jobs:
             --gpg-key "${{ secrets.RELEASE_GPG_KEY_ID }}"
 
       - name: Generate unsigned checksums
-        if: ${{ !(secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '') }}
+        if: ${{ env.RELEASE_SIGNING_ENABLED != 'true' }}
         run: |
           ./scripts/sign_release.sh \
             --input-dir "build/dist/sp-differ-${RELEASE_VERSION}-macos-universal" \
