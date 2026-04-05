@@ -64,11 +64,9 @@ Seeded workflows record seeds, input cases, and worker versions. Replayable arti
 - `make fuzz-minimizer-smoke` exercises the semantic fuzz reducer against synthetic structured and raw failures.
 - `make fuzz-semantic-spdk`, `make fuzz-semantic-silent-payments`, `make fuzz-semantic-bip352`, and `make fuzz-semantic-go-bip352` run deterministic semantic-worker fuzzing with replayable and auto-minimized artifacts under `build/`.
 - `make fuzz-semantic-workers FUZZ_STRUCTURED_ITERATIONS=64 FUZZ_RAW_ITERATIONS=64` runs the longer deterministic local matrix across all semantic workers.
-- `.github/workflows/ci.yml` runs short deterministic semantic-worker fuzzing on regular CI, while `.github/workflows/nightly-fuzz.yml` runs longer scheduled fuzz jobs and always uploads replay bundles.
-- `.github/workflows/ci.yml` now also includes a sanitizer-backed C++ smoke lane on Ubuntu so memory-safety and undefined-behavior regressions surface before release-oriented runs.
-- `.github/workflows/ci.yml` now also includes a Linux+macOS cross-platform lane that runs real smoke, reference-adapter, regression, and benchmark surfaces instead of only a token compile.
-- `.github/workflows/ci.yml` now also measures `make check-scripts` across Python 3.9, 3.11, and 3.13 so the package's `requires-python >=3.9` claim is continuously exercised.
-- `.github/workflows/maturity.yml` runs a scheduled live-readiness-plus-benchmark lane and uploads release-evidence artifacts so performance and release signals accumulate over time.
+- `.github/workflows/ci.yml` currently runs the regular Ubuntu `Build, Test, and Smoke` lane on pushes and pull requests targeting `main`.
+- `.github/workflows/nightly-fuzz.yml` runs the longer scheduled semantic-worker fuzz jobs and uploads replay bundles as tarred artifacts.
+- `.github/workflows/maturity.yml` runs scheduled live release verification, benchmark collection, release-evidence generation, and artifact upload.
 - `sp-differ status --profile release --require-green` now provides a single readiness check over the current oracle, adapter, regression, and fuzz evidence, and it also incorporates `build/bip352_external_probe.json` automatically when present so stale or failed integrated external-version evidence is reflected in the status report.
 - `make verify-release-live` is the stricter networked sign-off path: it runs the release-profile verification suite, refreshes the live upstream probe, and writes `build/sp_differ_release_readiness_live.json`.
 - `make vectors` runs the upstream oracle, validates the full derived v2 semantic corpus, checks the generated v1-compatible derived subset, and runs that subset through both byte-worker libraries.

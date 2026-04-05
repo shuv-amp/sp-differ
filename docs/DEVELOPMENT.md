@@ -99,8 +99,8 @@ sp-differ status --profile release --require-green
 - `sp_differ_cli.py verify --refresh-external-probe` is the networked sign-off variant: it reruns the external BIP352 probe before producing the final release verdict.
 - When `build/bip352_external_probe.json` exists, the same CLI status/report path also folds in the live integrated-adapter freshness probe and marks the report failed or incomplete on stale, failed, or partial external evidence.
 - The CLI packaging path is verified through `python3 -m pip install --editable .`, and the installed `sp-differ` console entrypoint now works against the current repo checkout.
-- `.github/workflows/ci.yml` now runs short deterministic semantic-worker fuzzing on normal CI, including the Go semantic worker, runs a Linux+macOS cross-platform lane, and measures `make check-scripts` across Python 3.9, 3.11, and 3.13.
-- `.github/workflows/nightly-fuzz.yml` runs longer scheduled fuzz jobs separately so daily coverage can grow without bloating every PR run.
+- `.github/workflows/ci.yml` currently runs the regular Ubuntu `Build, Test, and Smoke` lane on pushes and pull requests targeting `main`.
+- `.github/workflows/nightly-fuzz.yml` carries the longer scheduled semantic-worker fuzz jobs, while `.github/workflows/maturity.yml` carries scheduled live release verification, benchmark runs, and release-evidence artifact generation.
 - `scripts/package_ci_artifacts.py` now tars CI outputs before upload so replay scripts keep their permissions and the workflow artifacts preserve the original directory layout.
 - `make vectors` runs the upstream oracle, validates the full derived v2 semantic corpus, checks the derived v1-compatible subset, and runs that v1 subset through both byte-worker libraries.
 - The original compiled worker ABI is still v1-only, but the compiled runner/compare surface is no longer: v2 sender/receiver execution now also exists through `../spec/SEMANTIC_ADAPTER.md`, `../ffi/sp_differ_semantic.h`, the semantic bridge helper, and the in-tree semantic adapters/workers.
