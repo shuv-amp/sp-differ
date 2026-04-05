@@ -1,0 +1,36 @@
+{
+  "semantic_adapter_request_version": 1,
+  "case_format_version": 2,
+  "kind": "receive",
+  "network": "mainnet",
+  "silent_payment_version": 0,
+  "source": {
+    "upstream_commit": "test",
+    "case_index": 0,
+    "entry_index": 0,
+    "kind": "receive",
+    "comment": "test",
+    "id": "test_receive_rejects_missing_witness_pubkey"
+  },
+  "inputs": [
+    {
+      "input_type": "p2wpkh",
+      "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+      "outpoint_vout": 1,
+      "prevout_script_pubkey": "00149860538b5575962776ed0814ae222c7d60c72d7b",
+      "privkey": null,
+      "pubkey": null,
+      "script_sig": "",
+      "txinwitness": "",
+      "txinwitness_stack": []
+    }
+  ],
+  "outputs_to_scan": [
+    "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+  ],
+  "receiver_keys": {
+    "scan_privkey": "0000000000000000000000000000000000000000000000000000000000000002",
+    "spend_privkey": "0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  "labels": []
+}

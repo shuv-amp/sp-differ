@@ -465,6 +465,17 @@ fn decode_hex_list(values: &[String]) -> Result<Vec<Vec<u8>>> {
         .collect()
 }
 
+fn normalize_outputs_to_scan(outputs_to_scan: &[String]) -> Result<HashSet<String>> {
+    let mut remaining = HashSet::new();
+    for output in outputs_to_scan {
+        let bytes = hex_decode(output).map_err(|e| e.to_string())?;
+        let pubkey =
+            secp256k1::XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
+        remaining.insert(hex_encode(pubkey.serialize()));
+    }
+    Ok(remaining)
+}
+
 fn build_outpoints(request: &AdapterRequest) -> Result<Vec<(String, u32)>> {
     Ok(request
         .inputs
@@ -482,10 +493,7 @@ fn scan_outputs(
     outputs_to_scan: &[String],
     count_only: bool,
 ) -> Result<(bool, usize, Vec<FoundOutput>, Vec<String>)> {
-    let mut remaining = outputs_to_scan
-        .iter()
-        .cloned()
-        .collect::<HashSet<String>>();
+    let mut remaining = normalize_outputs_to_scan(outputs_to_scan)?;
     let label_entries = build_label_entries(secp, *b_scan, b_spend, labels)?;
     let mut found_count = 0usize;
     let mut found_outputs = Vec::new();
@@ -723,5 +731,23 @@ mod tests {
             },
         ];
         assert!(scan_group_recipient_limit_exceeded(&groups));
+    }
+
+    #[test]
+    fn receive_rejects_malformed_output_pubkeys() {
+        let error = run_request_json(include_str!(
+            "../../../tests/fixtures/receive_rejects_malformed_output_pubkeys.request.json"
+        ))
+        .expect_err("request should fail");
+        assert_eq!(error, "malformed public key");
+    }
+
+    #[test]
+    fn receive_rejects_malformed_output_before_point_at_infinity() {
+        let error = run_request_json(include_str!(
+            "../../../tests/fixtures/receive_rejects_malformed_output_before_point_at_infinity.request.json"
+        ))
+        .expect_err("request should fail");
+        assert_eq!(error, "malformed public key");
     }
 }

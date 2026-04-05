@@ -1,5 +1,5 @@
 use bitcoin::hashes::{sha256, Hash, HashEngine};
-use bitcoin::secp256k1::{Parity, PublicKey, Secp256k1, SecretKey};
+use bitcoin::secp256k1::{Parity, PublicKey, Secp256k1, SecretKey, XOnlyPublicKey};
 use bitcoin::{
     Amount, EcdsaSighashType, Network as BitcoinNetwork, OutPoint, ScriptBuf, Sequence,
     TxIn, TxOut, Txid, Witness,
@@ -441,9 +441,14 @@ fn collect_send_inputs(request: &AdapterRequest) -> Result<Vec<EligibleSendInput
     let mut eligible = Vec::new();
     for input in &request.inputs {
         let (txin, prevout) = build_txin_and_prevout(input)?;
-        let classified = classify_input(&txin, &prevout.script_pubkey);
-        let Ok(classified) = classified else {
-            continue;
+        let classified = match classify_input(&txin, &prevout.script_pubkey) {
+            Ok(classified) => classified,
+            Err(err) => {
+                if receive_input_requires_witness_pubkey(&txin, &prevout.script_pubkey) {
+                    return Err(format!("failed to parse input pubkey: {}", err));
+                }
+                continue;
+            }
         };
         let privkey_hex = input
             .privkey
@@ -482,9 +487,14 @@ fn collect_receive_inputs(request: &AdapterRequest) -> Result<Vec<EligibleReceiv
     let mut eligible = Vec::new();
     for input in &request.inputs {
         let (txin, prevout) = build_txin_and_prevout(input)?;
-        let classified = classify_input(&txin, &prevout.script_pubkey);
-        let Ok(classified) = classified else {
-            continue;
+        let classified = match classify_input(&txin, &prevout.script_pubkey) {
+            Ok(classified) => classified,
+            Err(err) => {
+                if receive_input_requires_witness_pubkey(&txin, &prevout.script_pubkey) {
+                    return Err(format!("failed to parse input pubkey: {}", err));
+                }
+                continue;
+            }
         };
         eligible.push(EligibleReceiveInput {
             public_key: classified.public_key,
@@ -538,6 +548,31 @@ fn decode_required_hex(value: Option<&String>, message: &str) -> Result<Vec<u8>>
         Some(item) => hex_decode(item).map_err(|e| e.to_string()),
         None => Err(message.to_owned()),
     }
+}
+
+fn receive_input_requires_witness_pubkey(txin: &TxIn, prevout_script_pubkey: &ScriptBuf) -> bool {
+    if prevout_script_pubkey.is_p2wpkh() {
+        return txin.witness.is_empty();
+    }
+    if prevout_script_pubkey.is_p2sh() {
+        let script_sig = txin.script_sig.as_bytes();
+        return script_sig.len() == 23
+            && script_sig[0] == 0x16
+            && script_sig[1] == 0x00
+            && script_sig[2] == 0x14
+            && txin.witness.is_empty();
+    }
+    false
+}
+
+fn normalize_outputs_to_scan(outputs_to_scan: &[String]) -> Result<HashSet<String>> {
+    let mut remaining = HashSet::new();
+    for output in outputs_to_scan {
+        let bytes = hex_decode(output).map_err(|e| e.to_string())?;
+        let pubkey = XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
+        remaining.insert(hex_encode(pubkey.serialize()));
+    }
+    Ok(remaining)
 }
 
 fn build_sender_shared_secrets(
@@ -661,7 +696,7 @@ fn scan_outputs(
     outputs_to_scan: &[String],
     count_only: bool,
 ) -> Result<(usize, Vec<FoundOutput>, Vec<String>)> {
-    let mut remaining = outputs_to_scan.iter().cloned().collect::<HashSet<String>>();
+    let mut remaining = normalize_outputs_to_scan(outputs_to_scan)?;
     let label_entries = build_label_entries(secp, *b_scan, b_spend, labels)?;
     let mut found_count = 0usize;
     let mut found_outputs = Vec::new();
@@ -899,6 +934,37 @@ mod tests {
             Value::String(
                 "02c8f4ce9acc0685424176e150b74244699304f994be15f4d41f49a6c1319826fe".to_owned()
             ),
+        );
+    }
+
+    #[test]
+    fn receive_rejects_malformed_output_pubkeys() {
+        let error = run_request_json(include_str!(
+            "../../../tests/fixtures/receive_rejects_malformed_output_pubkeys.request.json"
+        ))
+        .expect_err("request should fail");
+        assert_eq!(error, "malformed public key");
+    }
+
+    #[test]
+    fn receive_rejects_malformed_output_before_point_at_infinity() {
+        let error = run_request_json(include_str!(
+            "../../../tests/fixtures/receive_rejects_malformed_output_before_point_at_infinity.request.json"
+        ))
+        .expect_err("request should fail");
+        assert_eq!(error, "malformed public key");
+    }
+
+    #[test]
+    fn receive_rejects_missing_witness_pubkey() {
+        let error = run_request_json(include_str!(
+            "../../../tests/fixtures/receive_rejects_missing_witness_pubkey.request.json"
+        ))
+        .expect_err("request should fail");
+        assert!(
+            error.starts_with("failed to parse input pubkey:"),
+            "unexpected error: {}",
+            error
         );
     }
 }

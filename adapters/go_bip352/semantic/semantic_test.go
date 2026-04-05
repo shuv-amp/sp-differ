@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -28,6 +29,19 @@ func runFixtureValue(t *testing.T, name string) map[string]any {
 		t.Fatalf("decode response: %v", err)
 	}
 	return value
+}
+
+func runFixtureError(t *testing.T, name string) string {
+	t.Helper()
+	payload, err := os.ReadFile(fixturePath(name))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	_, err = RunRequestJSON(string(payload))
+	if err == nil {
+		t.Fatalf("expected request to fail")
+	}
+	return err.Error()
 }
 
 func TestSendInputHashUsesPrivkeySumNotRevealedInputPubkeys(t *testing.T) {
@@ -58,5 +72,26 @@ func TestReceivePointAtInfinityShortCircuitsBeforeScanningOutputs(t *testing.T) 
 	}
 	if actual["shared_secret"] != nil {
 		t.Fatalf("expected nil shared_secret, got %v", actual["shared_secret"])
+	}
+}
+
+func TestReceiveRejectsMalformedOutputPubkeys(t *testing.T) {
+	err := runFixtureError(t, "receive_rejects_malformed_output_pubkeys.request.json")
+	if !strings.Contains(err, "invalid public key:") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestReceiveRejectsMalformedOutputBeforePointAtInfinity(t *testing.T) {
+	err := runFixtureError(t, "receive_rejects_malformed_output_before_point_at_infinity.request.json")
+	if !strings.Contains(err, "invalid public key:") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestReceiveRejectsMissingWitnessPubkey(t *testing.T) {
+	err := runFixtureError(t, "receive_rejects_missing_witness_pubkey.request.json")
+	if err != "failed to parse input pubkey: missing witness pubkey" {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }

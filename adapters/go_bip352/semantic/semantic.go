@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"sort"
 
 	"github.com/btcsuite/btcd/btcec/v2"
@@ -22,6 +23,7 @@ const (
 
 var (
 	errNoEligibleInputs = errors.New("no_eligible_inputs")
+	errPointAtInfinity  = errors.New("point_at_infinity")
 	errZeroScalar       = errors.New("zero_scalar")
 )
 
@@ -310,11 +312,14 @@ func deriveReceiveSemantics(request *AdapterRequest) (map[string]any, error) {
 	for _, item := range eligible {
 		pubkeys = append(pubkeys, item.pubkey)
 	}
-	aSum, err := bip352.SumPublicKeys(pubkeys)
-	if err != nil {
+	aSum, err := sumPublicKeys(pubkeys)
+	switch {
+	case errors.Is(err, errPointAtInfinity):
 		payload["semantic_status"] = "point_at_infinity"
 		payload["detailed_outputs_available"] = true
 		return payload, nil
+	case err != nil:
+		return nil, err
 	}
 	payload["input_pubkey_sum"] = hex.EncodeToString(aSum[:])
 
@@ -413,7 +418,10 @@ func collectSendInputs(vins []*bip352.Vin) ([]eligibleSendInput, []string, error
 	eligible := make([]eligibleSendInput, 0, len(vins))
 	inputPubkeys := make([]string, 0, len(vins))
 	for _, vin := range vins {
-		pubkey, isTaproot, ok := extractEligiblePubkey(vin)
+		pubkey, isTaproot, ok, err := extractEligiblePubkey(vin)
+		if err != nil {
+			return nil, nil, err
+		}
 		if !ok {
 			continue
 		}
@@ -434,7 +442,10 @@ func collectReceiveInputs(vins []*bip352.Vin) ([]eligibleReceiveInput, []string,
 	eligible := make([]eligibleReceiveInput, 0, len(vins))
 	inputPubkeys := make([]string, 0, len(vins))
 	for _, vin := range vins {
-		pubkey, _, ok := extractEligiblePubkey(vin)
+		pubkey, _, ok, err := extractEligiblePubkey(vin)
+		if err != nil {
+			return nil, nil, err
+		}
 		if !ok {
 			continue
 		}
@@ -444,11 +455,11 @@ func collectReceiveInputs(vins []*bip352.Vin) ([]eligibleReceiveInput, []string,
 	return eligible, inputPubkeys, nil
 }
 
-func extractEligiblePubkey(vin *bip352.Vin) ([33]byte, bool, bool) {
+func extractEligiblePubkey(vin *bip352.Vin) ([33]byte, bool, bool, error) {
 	switch {
 	case isP2TR(vin.ScriptPubKey):
 		if len(vin.Witness) == 0 {
-			return [33]byte{}, false, false
+			return [33]byte{}, false, false, nil
 		}
 		witness := vin.Witness
 		if len(witness) > 1 && len(witness[len(witness)-1]) == 1 && witness[len(witness)-1][0] == 0x50 {
@@ -457,33 +468,33 @@ func extractEligiblePubkey(vin *bip352.Vin) ([33]byte, bool, bool) {
 		if len(witness) > 1 {
 			controlBlock := witness[len(witness)-1]
 			if len(controlBlock) < 33 {
-				return [33]byte{}, false, false
+				return [33]byte{}, false, false, nil
 			}
 			if bytes.Equal(controlBlock[1:33], bip352.NumsH) {
-				return [33]byte{}, false, false
+				return [33]byte{}, false, false, nil
 			}
 		}
 		if len(vin.ScriptPubKey) != 34 {
-			return [33]byte{}, false, false
+			return [33]byte{}, false, false, nil
 		}
 		var pubkey [33]byte
 		pubkey[0] = 0x02
 		copy(pubkey[1:], vin.ScriptPubKey[2:])
-		return pubkey, true, true
+		return pubkey, true, true, nil
 	case isP2WPKH(vin.ScriptPubKey):
 		if len(vin.Witness) == 0 {
-			return [33]byte{}, false, false
+			return [33]byte{}, false, false, errors.New("failed to parse input pubkey: missing witness pubkey")
 		}
 		candidate := vin.Witness[len(vin.Witness)-1]
 		if len(candidate) != 33 {
-			return [33]byte{}, false, false
+			return [33]byte{}, false, false, nil
 		}
 		var pubkey [33]byte
 		copy(pubkey[:], candidate)
-		return pubkey, false, true
+		return pubkey, false, true, nil
 	case isP2PKH(vin.ScriptPubKey):
 		if len(vin.ScriptSig) < 33 {
-			return [33]byte{}, false, false
+			return [33]byte{}, false, false, nil
 		}
 		scriptPubkeyHash := vin.ScriptPubKey[3:23]
 		for offset := len(vin.ScriptSig); offset >= 33; offset-- {
@@ -496,25 +507,28 @@ func extractEligiblePubkey(vin *bip352.Vin) ([33]byte, bool, bool) {
 			}
 			var pubkey [33]byte
 			copy(pubkey[:], candidate)
-			return pubkey, false, true
+			return pubkey, false, true, nil
 		}
-		return [33]byte{}, false, false
+		return [33]byte{}, false, false, nil
 	case isP2SH(vin.ScriptPubKey):
-		if len(vin.ScriptSig) != 23 || len(vin.Witness) == 0 {
-			return [33]byte{}, false, false
+		if len(vin.ScriptSig) != 23 {
+			return [33]byte{}, false, false, nil
 		}
 		if !bytes.Equal(vin.ScriptSig[:3], []byte{0x16, 0x00, 0x14}) {
-			return [33]byte{}, false, false
+			return [33]byte{}, false, false, nil
+		}
+		if len(vin.Witness) == 0 {
+			return [33]byte{}, false, false, errors.New("failed to parse input pubkey: missing witness pubkey")
 		}
 		candidate := vin.Witness[len(vin.Witness)-1]
 		if len(candidate) != 33 {
-			return [33]byte{}, false, false
+			return [33]byte{}, false, false, nil
 		}
 		var pubkey [33]byte
 		copy(pubkey[:], candidate)
-		return pubkey, false, true
+		return pubkey, false, true, nil
 	default:
-		return [33]byte{}, false, false
+		return [33]byte{}, false, false, nil
 	}
 }
 
@@ -694,6 +708,32 @@ func decodeOutputsToScan(values []string) ([][32]byte, error) {
 		outputs = append(outputs, output)
 	}
 	return outputs, nil
+}
+
+func sumPublicKeys(pubKeys [][33]byte) ([33]byte, error) {
+	accX := new(big.Int)
+	accY := new(big.Int)
+	for _, serialized := range pubKeys {
+		pubKey, err := btcec.ParsePubKey(serialized[:])
+		if err != nil {
+			return [33]byte{}, err
+		}
+		accX, accY = btcec.S256().Add(accX, accY, pubKey.X(), pubKey.Y())
+	}
+	if accX.Sign() == 0 && accY.Sign() == 0 {
+		return [33]byte{}, errPointAtInfinity
+	}
+
+	var xField btcec.FieldVal
+	var yField btcec.FieldVal
+	if overflow := xField.SetByteSlice(accX.Bytes()); overflow {
+		return [33]byte{}, errors.New("invalid summed public key")
+	}
+	if overflow := yField.SetByteSlice(accY.Bytes()); overflow {
+		return [33]byte{}, errors.New("invalid summed public key")
+	}
+
+	return bip352.ConvertToFixedLength33(btcec.NewPublicKey(&xField, &yField).SerializeCompressed()), nil
 }
 
 func deriveTweak(aSum [33]byte, inputHash [32]byte) ([33]byte, error) {
