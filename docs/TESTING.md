@@ -68,7 +68,7 @@ Seeded workflows record seeds, input cases, and worker versions. Replayable arti
 - `.github/workflows/nightly-fuzz.yml` runs the longer scheduled semantic-worker fuzz jobs and uploads replay bundles as tarred artifacts.
 - `.github/workflows/maturity.yml` runs scheduled live release verification, benchmark collection, release-evidence generation, and artifact upload.
 - `sp-differ status --profile release --require-green` now provides a single readiness check over the current oracle, adapter, regression, and fuzz evidence, and it also incorporates `build/bip352_external_probe.json` automatically when present so stale or failed integrated external-version evidence is reflected in the status report.
-- `make verify-release-live` is the stricter networked sign-off path: it runs the release-profile verification suite, refreshes the live upstream probe, and writes `build/sp_differ_release_readiness_live.json`.
+- `make verify-release-live` is the stricter networked sign-off path: it runs the release-profile verification suite and, when external-probe candidate metadata is present, refreshes the live upstream probe before writing `build/sp_differ_release_readiness_live.json`. Without that metadata it still writes the live readiness report and notes that upstream freshness was not evaluated.
 - `make vectors` runs the upstream oracle, validates the full derived v2 semantic corpus, checks the generated v1-compatible derived subset, and runs that subset through both byte-worker libraries.
 
 Benchmark summaries are intentionally separate from release-readiness verdicts. They are useful for lab comparison and regression detection, but they should only be compared when the corpus selection, timeout, and iteration signature match exactly.

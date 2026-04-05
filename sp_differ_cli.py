@@ -628,15 +628,31 @@ def _handle_verify(args: argparse.Namespace) -> int:
         probe_json, probe_markdown = _resolve_external_probe_paths(
             args.build_dir, args.external_probe
         )
-        probe_command = _build_external_probe_command(
-            args.python,
-            args.external_probe_candidates,
-            probe_json,
-            probe_markdown,
-        )
-        rc = _run_command(probe_command, dry_run=args.dry_run)
-        if rc != 0:
-            return rc
+        if not args.external_probe_candidates.exists():
+            if args.external_probe_candidates == DEFAULT_EXTERNAL_PROBE_CANDIDATES:
+                print(
+                    "note: external probe candidates file {} is absent; skipping live external probe refresh".format(
+                        args.external_probe_candidates
+                    )
+                )
+            else:
+                print(
+                    "error: external probe candidates file does not exist: {}".format(
+                        args.external_probe_candidates
+                    ),
+                    file=sys.stderr,
+                )
+                return 2
+        else:
+            probe_command = _build_external_probe_command(
+                args.python,
+                args.external_probe_candidates,
+                probe_json,
+                probe_markdown,
+            )
+            rc = _run_command(probe_command, dry_run=args.dry_run)
+            if rc != 0:
+                return rc
     if args.skip_status or args.dry_run:
         if args.dry_run and not args.skip_status:
             print("dry-run complete; skipped release-readiness report generation")
@@ -722,7 +738,7 @@ def _build_parser() -> argparse.ArgumentParser:
     verify.add_argument(
         "--refresh-external-probe",
         action="store_true",
-        help="Refresh live external BIP352 probe evidence before the final readiness verdict",
+        help="Refresh live external BIP352 probe evidence before the final readiness verdict when candidate metadata is available",
     )
     verify.add_argument(
         "--external-probe-candidates",

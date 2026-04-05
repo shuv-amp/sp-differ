@@ -113,7 +113,7 @@ Toolchain surfaces exercised by `make test`:
 - Benchmark summaries are also evidence summaries from this harness.
 - They are not universal claims about every implementation on the internet.
 - Use language such as "measured in this harness" when sharing results.
-- For live sign-off, prefer a refreshed upstream probe via `sp-differ verify --profile release --refresh-external-probe` or `make verify-release-live`.
+- For live sign-off, prefer `sp-differ verify --profile release --refresh-external-probe` or `make verify-release-live` when the repo carries external-probe candidate metadata. Repos without that metadata still produce a live readiness report, but upstream freshness is left unevaluated.
 
 ## How It Works
 

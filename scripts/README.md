@@ -60,7 +60,7 @@ Make targets:
 - `make verify-release-evidence` verifies that the current release-evidence manifest still matches the files on disk.
 - `make release-sign RELEASE_SIGN_GPG_KEY=<fingerprint>` signs the current `build/release/` binaries after `make release`.
 - `make verify-quick` and `make verify-release` drive the canonical offline CLI verification profiles.
-- `make verify-release-live` is the networked sign-off lane: it refreshes the external BIP352 probe first and writes `build/sp_differ_release_readiness_live.json`.
+- `make verify-release-live` is the networked sign-off lane: when external-probe candidate metadata is present, it refreshes the external BIP352 probe first and writes `build/sp_differ_release_readiness_live.json`. Otherwise it still writes the live readiness report and notes that upstream freshness was not evaluated.
 - `make smoke` runs the end-to-end smoke check with the compiled runner.
 - `make worker-rust` builds the Rust byte-worker library and copies the shared library into `build/`.
 - `make smoke-rust` runs the compiled runner against the Rust byte-worker library.

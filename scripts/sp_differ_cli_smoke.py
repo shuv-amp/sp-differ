@@ -3,9 +3,11 @@
 """Smoke tests for the public SP-DIFFER CLI/report aggregator."""
 
 import json
+import io
 import subprocess
 import sys
 import tempfile
+from contextlib import redirect_stdout
 from pathlib import Path
 
 
@@ -397,6 +399,57 @@ def _verify_refresh_external_probe_smoke(build_dir: Path, manifest: Path) -> Non
     _require("spdk-rust" in stale_report["failed_reports"], "expected stale refreshed probe failure")
 
 
+def _verify_missing_default_external_probe_candidates_smoke(build_dir: Path, manifest: Path) -> None:
+    report_json = build_dir / "verify_missing_probe_readiness.json"
+    report_markdown = build_dir / "verify_missing_probe_readiness.md"
+    probe_script = str(ROOT / "scripts" / "bip352_external_probe.py")
+    original_run_command = cli._run_command
+    original_candidates = cli.DEFAULT_EXTERNAL_PROBE_CANDIDATES
+    recorded_commands: list[list[str]] = []
+    stdout = io.StringIO()
+
+    def fake_run_command(command: list[str], dry_run: bool = False) -> int:
+        recorded_commands.append([str(part) for part in command])
+        return 0
+
+    cli._run_command = fake_run_command
+    cli.DEFAULT_EXTERNAL_PROBE_CANDIDATES = build_dir / "missing_external_probe_candidates.json"
+    try:
+        with redirect_stdout(stdout):
+            rc = cli.main(
+                [
+                    "verify",
+                    "--profile",
+                    "quick",
+                    "--build-dir",
+                    str(build_dir),
+                    "--regression-manifest",
+                    str(manifest),
+                    "--json-out",
+                    str(report_json),
+                    "--markdown-out",
+                    str(report_markdown),
+                    "--refresh-external-probe",
+                    "--skip-status",
+                    "--python",
+                    sys.executable,
+                ]
+            )
+    finally:
+        cli._run_command = original_run_command
+        cli.DEFAULT_EXTERNAL_PROBE_CANDIDATES = original_candidates
+
+    _require(rc == 0, "expected verify to skip a missing default external probe candidates file")
+    _require(
+        not any(len(command) >= 2 and command[1] == probe_script for command in recorded_commands),
+        "expected verify to skip probe refresh when the default candidates file is missing",
+    )
+    _require(
+        "skipping live external probe refresh" in stdout.getvalue(),
+        "expected verify to explain that the missing default candidates file was skipped",
+    )
+
+
 def main_smoke() -> int:
     snapshot = "5d43f942c8058f244d6422133dd6b078a5c21c3c702fa7a51b41b24c951709c9"
     upstream = "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
@@ -472,6 +525,7 @@ def main_smoke() -> int:
 
         _external_probe_status_smoke(build_dir, manifest)
         _verify_refresh_external_probe_smoke(build_dir, manifest)
+        _verify_missing_default_external_probe_candidates_smoke(build_dir, manifest)
         _replay_custom_manifest_smoke(root)
         _replay_adapter_fuzz_artifact_smoke(root)
         _replay_legacy_summary_cmd_smoke(root)

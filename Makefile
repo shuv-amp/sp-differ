@@ -601,7 +601,14 @@ release-report:
 	$(PYTHON) sp_differ_cli.py status --profile release --json-out build/sp_differ_release_readiness.json --markdown-out build/sp_differ_release_readiness.md --require-green
 
 release-evidence:
-	$(PYTHON) scripts/generate_release_evidence_manifest.py --json-out build/release_evidence_manifest.json --markdown-out build/release_evidence_manifest.md --path build/sp_differ_release_readiness.json --path build/sp_differ_release_readiness.md --path build/sp_differ_release_readiness_live.json --path build/sp_differ_release_readiness_live.md --path build/bip352_external_probe.json --path build/bip352_external_probe.md --path build/semantic_benchmark_summary.json --path build/semantic_benchmark_summary.md
+	@PROBE_EVIDENCE_ARGS=""; \
+	if [ -f build/bip352_external_probe.json ]; then \
+		PROBE_EVIDENCE_ARGS="$$PROBE_EVIDENCE_ARGS --path build/bip352_external_probe.json"; \
+	fi; \
+	if [ -f build/bip352_external_probe.md ]; then \
+		PROBE_EVIDENCE_ARGS="$$PROBE_EVIDENCE_ARGS --path build/bip352_external_probe.md"; \
+	fi; \
+	$(PYTHON) scripts/generate_release_evidence_manifest.py --json-out build/release_evidence_manifest.json --markdown-out build/release_evidence_manifest.md --path build/sp_differ_release_readiness.json --path build/sp_differ_release_readiness.md --path build/sp_differ_release_readiness_live.json --path build/sp_differ_release_readiness_live.md $$PROBE_EVIDENCE_ARGS --path build/semantic_benchmark_summary.json --path build/semantic_benchmark_summary.md
 
 release-sign: release
 	./scripts/sign_release.sh --input-dir $(RELEASE_BUILD_DIR) --output-dir $(RELEASE_BUILD_DIR) --gpg-key "$(RELEASE_SIGN_GPG_KEY)"
