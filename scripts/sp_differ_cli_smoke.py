@@ -322,10 +322,12 @@ def _external_probe_status_smoke(
 def _verify_refresh_external_probe_smoke(build_dir: Path, manifest: Path) -> None:
     probe_path = build_dir / "verify_live_probe.json"
     probe_markdown = cli._external_probe_markdown_path(probe_path)
+    probe_candidates = build_dir / "verify_live_probe_candidates.json"
     report_json = build_dir / "verify_live_readiness.json"
     report_markdown = build_dir / "verify_live_readiness.md"
     probe_script = str(ROOT / "scripts" / "bip352_external_probe.py")
     original_run_command = cli._run_command
+    _write_json(probe_candidates, {"candidates": []})
 
     def run_case(stale: bool) -> tuple[int, list[list[str]]]:
         recorded_commands: list[list[str]] = []
@@ -367,6 +369,8 @@ def _verify_refresh_external_probe_smoke(build_dir: Path, manifest: Path) -> Non
                     str(report_markdown),
                     "--external-probe",
                     str(probe_path),
+                    "--external-probe-candidates",
+                    str(probe_candidates),
                     "--refresh-external-probe",
                     "--python",
                     sys.executable,
