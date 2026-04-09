@@ -6,27 +6,50 @@ from __future__ import annotations
 
 import argparse
 import ctypes
-import os
 import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_STR = str(ROOT)
+
+def _library_ext() -> str:
+    if sys.platform == "darwin":
+        return "dylib"
+    if sys.platform == "win32":
+        return "dll"
+    return "so"
 
 
-def _resolve_repo_library(raw_library: str) -> Path:
-    candidate = Path(raw_library)
-    if not candidate.is_absolute():
-        candidate = ROOT / candidate
-    resolved = Path(os.path.realpath(candidate))
-    try:
-        common = os.path.commonpath([ROOT_STR, str(resolved)])
-    except ValueError as exc:
-        raise ValueError("path escapes repository root: {}".format(raw_library)) from exc
-    if common != ROOT_STR:
-        raise ValueError("path escapes repository root: {}".format(raw_library))
-    return resolved
+def _shared_library_name(stem: str) -> str:
+    ext = _library_ext()
+    if sys.platform == "win32":
+        return f"{stem}.{ext}"
+    return f"lib{stem}.{ext}"
+
+
+TARGET_LIBRARY_PATHS = {
+    "bip352-semantic": ROOT
+    / "adapters"
+    / "bip352_rust"
+    / "target"
+    / "debug"
+    / _shared_library_name("sp_differ_semantic_worker_bip352"),
+    "cpp-worker": ROOT / "build" / _shared_library_name("sp_differ_worker"),
+    "go-bip352-semantic": ROOT / "build" / _shared_library_name("sp_differ_semantic_worker_go_bip352"),
+    "rust-worker": ROOT / "build" / _shared_library_name("sp_differ_worker_rust"),
+    "silent-payments-semantic": ROOT
+    / "adapters"
+    / "silent_payments_rust"
+    / "target"
+    / "debug"
+    / _shared_library_name("sp_differ_semantic_worker_silent_payments"),
+    "spdk-semantic": ROOT
+    / "adapters"
+    / "spdk_rust"
+    / "target"
+    / "debug"
+    / _shared_library_name("sp_differ_semantic_worker_spdk"),
+}
 
 
 def load_library(library: Path) -> ctypes.CDLL:
@@ -39,7 +62,12 @@ def load_library(library: Path) -> ctypes.CDLL:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--library", required=True, help="shared library to inspect")
+    parser.add_argument(
+        "--target",
+        required=True,
+        choices=sorted(TARGET_LIBRARY_PATHS),
+        help="named shared library target to inspect",
+    )
     parser.add_argument(
         "--symbol",
         action="append",
@@ -49,7 +77,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    library = _resolve_repo_library(args.library)
+    library = TARGET_LIBRARY_PATHS[args.target]
     if not library.is_file():
         print(f"error: library not found: {library}", file=sys.stderr)
         return 1

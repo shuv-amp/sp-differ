@@ -3,14 +3,12 @@
 """Check GitHub Actions workflows for pinned actions and top-level hardening defaults."""
 
 import argparse
-import os
 import re
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_STR = str(ROOT)
-DEFAULT_TARGETS = [".github/workflows"]
+WORKFLOW_ROOT = ROOT / ".github" / "workflows"
 WORKFLOW_SUFFIXES = {".yml", ".yaml"}
 FULL_SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 USES_PATTERN = re.compile(r"^\s*(?:-\s*)?uses:\s*([^@\s#]+)@([^\s#]+)")
@@ -18,31 +16,12 @@ TOP_LEVEL_KEY_PATTERN = r"^{}:\s*(.*?)\s*(?:#.*)?$"
 BLOCK_KEY_PATTERN = r"^\s+{}:\s*(.*?)\s*(?:#.*)?$"
 
 
-def _iter_files(targets):
-    for raw_target in targets:
-        path = _resolve_repo_path(raw_target)
-        if not path.exists():
-            raise FileNotFoundError("missing path: {}".format(path))
-        if path.is_dir():
-            for child in sorted(path.rglob("*")):
-                if child.is_file() and child.suffix in WORKFLOW_SUFFIXES:
-                    yield child
-        elif path.is_file() and path.suffix in WORKFLOW_SUFFIXES:
-            yield path
-
-
-def _resolve_repo_path(raw_target):
-    candidate = Path(raw_target)
-    if not candidate.is_absolute():
-        candidate = ROOT / candidate
-    resolved = Path(os.path.realpath(candidate))
-    try:
-        common = os.path.commonpath([ROOT_STR, str(resolved)])
-    except ValueError as exc:
-        raise ValueError("path escapes repository root: {}".format(raw_target)) from exc
-    if common != ROOT_STR:
-        raise ValueError("path escapes repository root: {}".format(raw_target))
-    return resolved
+def _iter_workflow_files():
+    if not WORKFLOW_ROOT.is_dir():
+        raise FileNotFoundError("missing path: {}".format(WORKFLOW_ROOT))
+    for child in sorted(WORKFLOW_ROOT.rglob("*")):
+        if child.is_file() and child.suffix in WORKFLOW_SUFFIXES:
+            yield child
 
 
 def _collect_top_level_block(lines, key):
@@ -180,12 +159,12 @@ def scan_text(text):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Check GitHub Actions workflows for pinned actions and top-level hardening defaults")
-    parser.add_argument("paths", nargs="*", default=DEFAULT_TARGETS, help="Workflow files or directories to scan")
-    args = parser.parse_args()
+    argparse.ArgumentParser(
+        description="Check GitHub Actions workflows for pinned actions and top-level hardening defaults"
+    ).parse_args()
 
     failures = []
-    for path in _iter_files(args.paths):
+    for path in _iter_workflow_files():
         text = path.read_text(encoding="utf-8")
         findings = scan_text(text)
         if findings:
