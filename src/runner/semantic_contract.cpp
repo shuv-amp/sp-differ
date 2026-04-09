@@ -3,6 +3,7 @@
 
 #include "semantic_bridge.hpp"
 
+#include <algorithm>
 #include <set>
 #include <sstream>
 
