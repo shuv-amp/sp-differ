@@ -175,8 +175,7 @@ fn derive_send_semantics(request: &AdapterRequest) -> Result<Value> {
                 .prevout_script_pubkey
                 .as_ref()
                 .ok_or_else(|| "missing prevout_script_pubkey".to_owned())?;
-            let prevout_script_pubkey =
-                hex_decode(script_pubkey_hex).map_err(|e| e.to_string())?;
+            let prevout_script_pubkey = hex_decode(script_pubkey_hex).map_err(|e| e.to_string())?;
             eligible_keys.push((privkey, is_p2tr(&prevout_script_pubkey)));
         }
     }
@@ -269,7 +268,11 @@ fn derive_send_semantics(request: &AdapterRequest) -> Result<Value> {
 
     sender_shared_secrets.sort_by(|left, right| left.scan_pubkey.cmp(&right.scan_pubkey));
 
-    let recipients = build_recipient_list(groups, request.silent_payment_version, request.network.as_str())?;
+    let recipients = build_recipient_list(
+        groups,
+        request.silent_payment_version,
+        request.network.as_str(),
+    )?;
     let outputs = generate_recipient_pubkeys(recipients, partial_secret)
         .map_err(|e| format!("failed to generate recipient pubkeys: {}", e))?;
     let mut output_set = BTreeSet::new();
@@ -395,10 +398,7 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
     let tweak_data = calculate_tweak_data(&input_pubkey_refs, &outpoints_data)
         .map_err(|e| format!("failed to calculate tweak data: {}", e))?;
     let shared_secret = calculate_receive_shared_secret(&tweak_data, &b_scan);
-    let outputs_to_scan_hex = request
-        .outputs_to_scan
-        .clone()
-        .unwrap_or_default();
+    let outputs_to_scan_hex = request.outputs_to_scan.clone().unwrap_or_default();
     let detailed_outputs_required = request
         .expectation_hints
         .as_ref()
@@ -469,8 +469,8 @@ fn normalize_outputs_to_scan(outputs_to_scan: &[String]) -> Result<HashSet<Strin
     let mut remaining = HashSet::new();
     for output in outputs_to_scan {
         let bytes = hex_decode(output).map_err(|e| e.to_string())?;
-        let pubkey =
-            secp256k1::XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
+        let pubkey = secp256k1::XOnlyPublicKey::from_slice(&bytes)
+            .map_err(|_| "malformed public key".to_owned())?;
         remaining.insert(hex_encode(pubkey.serialize()));
     }
     Ok(remaining)
@@ -568,17 +568,26 @@ fn build_label_entries(
 ) -> Result<Vec<LabelEntry>> {
     let mut entries = Vec::new();
     for label in labels {
-        let tweak_bytes = tagged_hash("BIP0352/Label", &[&b_scan.secret_bytes()[..], &label.to_be_bytes()[..]].concat());
+        let tweak_bytes = tagged_hash(
+            "BIP0352/Label",
+            &[&b_scan.secret_bytes()[..], &label.to_be_bytes()[..]].concat(),
+        );
         let tweak = secp256k1::SecretKey::from_slice(&tweak_bytes).map_err(|e| e.to_string())?;
         let spend_pubkey = b_spend
             .combine(&tweak.public_key(secp))
             .map_err(|e| format!("failed to combine label spend pubkey: {}", e))?;
-        entries.push(LabelEntry { spend_pubkey, tweak });
+        entries.push(LabelEntry {
+            spend_pubkey,
+            tweak,
+        });
     }
     Ok(entries)
 }
 
-fn shared_secret_tweak(shared_secret: &secp256k1::PublicKey, index: u32) -> Result<secp256k1::SecretKey> {
+fn shared_secret_tweak(
+    shared_secret: &secp256k1::PublicKey,
+    index: u32,
+) -> Result<secp256k1::SecretKey> {
     let tweak_bytes = tagged_hash(
         "BIP0352/SharedSecret",
         &[&shared_secret.serialize()[..], &index.to_be_bytes()[..]].concat(),

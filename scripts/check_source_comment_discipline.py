@@ -7,6 +7,9 @@ import re
 from pathlib import Path
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 DEFAULT_TARGETS = ["src", "workers", "scripts", "adapters", "tests/fixtures"]
 SOURCE_SUFFIXES = {".py", ".cpp", ".h", ".hpp", ".cc", ".cxx", ".rs", ".go"}
 SKIP_PARTS = {"build", "target", "__pycache__"}
@@ -38,12 +41,12 @@ CHECKS = [
 def _should_skip(path: Path) -> bool:
     if any(part in SKIP_PARTS for part in path.parts):
         return True
-    return any(path.is_relative_to(prefix) for prefix in SKIP_PREFIXES)
+    return any(path.is_relative_to((ROOT / prefix).resolve()) for prefix in SKIP_PREFIXES)
 
 
 def _iter_files(targets):
     for raw_target in targets:
-        path = Path(raw_target)
+        path = _resolve_repo_path(raw_target)
         if not path.exists():
             raise FileNotFoundError("missing path: {}".format(path))
         if path.is_dir():
@@ -52,6 +55,16 @@ def _iter_files(targets):
                     yield child
         elif path.is_file() and path.suffix in SOURCE_SUFFIXES and not _should_skip(path):
             yield path
+
+
+def _resolve_repo_path(raw_target):
+    candidate = Path(raw_target)
+    if not candidate.is_absolute():
+        candidate = ROOT / candidate
+    resolved = candidate.resolve()
+    if not resolved.is_relative_to(ROOT):
+        raise ValueError("path escapes repository root: {}".format(raw_target))
+    return resolved
 
 
 def _scan_python(text: str):

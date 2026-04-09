@@ -17,7 +17,8 @@ defaults:
     shell: bash
 
 env:
-  DEFAULT_PYTHON_VERSION: "3.11"
+  PYTHON_VERSION_FILE: ".python-version"
+  RUST_TOOLCHAIN_VERSION: "1.92.0"
 
 jobs:
   maturity:
@@ -25,12 +26,12 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
 
       - name: Install native dependencies
         run: |
@@ -38,10 +39,12 @@ jobs:
           sudo apt-get install -y libsecp256k1-dev
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN_VERSION }}
 
       - name: Install Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: adapters/go_bip352/go.mod
           cache-dependency-path: adapters/go_bip352/go.sum
@@ -102,7 +105,7 @@ jobs:
 
       - name: Upload maturity artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: maturity-${{ github.run_id }}-${{ github.run_attempt }}
           path: build/ci_artifacts/maturity-${{ github.run_id }}.tar

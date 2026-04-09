@@ -5,11 +5,11 @@ SP-DIFFER is a testing framework. It does not hold production keys and should no
 ## Reporting a Vulnerability
 
 If you discover a security issue in this repository:
-- Open a GitHub issue in this repository and mark it security-sensitive.
-- If GitHub private security advisories are available for the repository, prefer that path for issues that should not be disclosed publicly before a fix is ready.
-- No separate private email or other private reporting channel is documented for this repository today.
+- For the public repository, use GitHub Private Vulnerability Reporting or a private security advisory first.
+- Use public issues only for non-sensitive follow-up or for issues that are already disclosed.
+- This repository does not currently publish a separate security email alias. A dedicated alias such as `security@<maintainer-domain>` is the professional next step if you want an out-of-band reporting path for reporters who cannot use GitHub.
 
-Maintainers should acknowledge the report in the issue or advisory and coordinate follow-up there.
+Maintainers should acknowledge private reports promptly, coordinate follow-up in the advisory thread, and only move discussion into public issues after disclosure is intentional.
 
 ## Release Verification
 

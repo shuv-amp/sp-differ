@@ -61,6 +61,18 @@ python3 scripts/verify_packaged_release.py \
   --keys-file KEYS
 ```
 
+If the archive came from the GitHub tag workflow, also verify the GitHub-hosted provenance attestation:
+
+```bash
+python3 scripts/verify_release_attestation.py \
+  build/sp-differ-v1.0.0-linux-x64.tar.gz \
+  --repo shuv-amp/sp-differ \
+  --source-ref refs/tags/v1.0.0
+```
+
+That wrapper enforces the release workflow identity (`shuv-amp/sp-differ/.github/workflows/release.yml`), the SLSA provenance predicate, and rejection of self-hosted runners.
+The tag workflow now also prepares a draft GitHub Release that includes the per-platform tarballs, checksum files, packaged-release verification reports, and `KEYS`; keep it in draft state until those assets and notes have been reviewed.
+
 Manual verification is also possible:
 
 ```bash

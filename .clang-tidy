@@ -1,0 +1,17 @@
+Checks: >-
+  -*,
+  clang-analyzer-*,
+  bugprone-assert-side-effect,
+  bugprone-branch-clone,
+  bugprone-infinite-loop,
+  bugprone-sizeof-container,
+  bugprone-use-after-move
+WarningsAsErrors: >-
+  clang-analyzer-*,
+  bugprone-assert-side-effect,
+  bugprone-branch-clone,
+  bugprone-infinite-loop,
+  bugprone-sizeof-container,
+  bugprone-use-after-move
+HeaderFilterRegex: '^(src|workers)/'
+FormatStyle: none

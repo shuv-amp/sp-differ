@@ -1,0 +1,20 @@
+# Keep ownership explicit for the most sensitive surfaces. Public code-owner
+# enforcement should only be enabled once each protected area has review
+# coverage that will not deadlock merges.
+
+* @shuv-amp
+
+/.github/ @shuv-amp
+/Makefile @shuv-amp
+/KEYS @shuv-amp
+/SECURITY.md @shuv-amp
+/SIGNING.md @shuv-amp
+/docs/ @shuv-amp
+/ffi/ @shuv-amp
+/fuzz/ @shuv-amp
+/scripts/ @shuv-amp
+/spec/ @shuv-amp
+/src/ @shuv-amp
+/tests/ @shuv-amp
+/workers/ @shuv-amp
+/adapters/ @shuv-amp

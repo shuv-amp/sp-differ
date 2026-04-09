@@ -8,6 +8,9 @@ import tempfile
 from pathlib import Path
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 def _run(path: Path):
     return subprocess.run(
         [sys.executable, "scripts/check_source_comment_discipline.py", str(path)],
@@ -18,7 +21,11 @@ def _run(path: Path):
 
 
 def main() -> int:
-    with tempfile.TemporaryDirectory(prefix="sp_differ_source_comments_") as tmpdir:
+    temp_root = ROOT / ".tmp_smoke"
+    temp_root.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="sp_differ_source_comments_", dir=temp_root
+    ) as tmpdir:
         tmp = Path(tmpdir)
         clean = tmp / "clean.cpp"
         flagged = tmp / "flagged.py"

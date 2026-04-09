@@ -1,15 +1,15 @@
 use bitcoin::hashes::{sha256, Hash, HashEngine};
 use bitcoin::secp256k1::{Parity, PublicKey, Secp256k1, SecretKey, XOnlyPublicKey};
 use bitcoin::{
-    Amount, EcdsaSighashType, Network as BitcoinNetwork, OutPoint, ScriptBuf, Sequence,
-    TxIn, TxOut, Txid, Witness,
+    Amount, EcdsaSighashType, Network as BitcoinNetwork, OutPoint, ScriptBuf, Sequence, TxIn,
+    TxOut, Txid, Witness,
 };
 use hex::{decode as hex_decode, encode as hex_encode};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use silent_payments::{
-    classify_input, get_label_tweak, ScanPublicKey, ScanSecretKey, SendError,
-    SilentPaymentSender, SpAddress, SpInputType, SpendPublicKey,
+    classify_input, get_label_tweak, ScanPublicKey, ScanSecretKey, SendError, SilentPaymentSender,
+    SpAddress, SpInputType, SpendPublicKey,
 };
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::{self, Read};
@@ -328,7 +328,8 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
         .as_ref()
         .ok_or_else(|| "missing receiver_keys".to_owned())?;
     let scan_privkey_bytes = hex_decode(&receiver_keys.scan_privkey).map_err(|e| e.to_string())?;
-    let spend_privkey_bytes = hex_decode(&receiver_keys.spend_privkey).map_err(|e| e.to_string())?;
+    let spend_privkey_bytes =
+        hex_decode(&receiver_keys.spend_privkey).map_err(|e| e.to_string())?;
     let b_scan = SecretKey::from_slice(&scan_privkey_bytes).map_err(|e| e.to_string())?;
     let b_spend = SecretKey::from_slice(&spend_privkey_bytes).map_err(|e| e.to_string())?;
     let scan_secret = ScanSecretKey::from_slice(&scan_privkey_bytes)
@@ -338,15 +339,22 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
     let base_scan_pubkey = ScanPublicKey::from(scan_pubkey);
     let base_spend_pubkey = SpendPublicKey::from(spend_pubkey);
     let network = map_network(request.network.as_str())?;
-    let mut receiving_addresses = vec![
-        SpAddress::new(base_scan_pubkey.clone(), base_spend_pubkey.clone(), network).to_string(),
-    ];
+    let mut receiving_addresses =
+        vec![
+            SpAddress::new(base_scan_pubkey.clone(), base_spend_pubkey.clone(), network)
+                .to_string(),
+        ];
     for label_value in request.labels.clone().unwrap_or_default() {
         let label_tweak = get_label_tweak(&scan_secret, label_value)
             .map_err(|e| format!("failed to derive label tweak {}: {}", label_value, e))?;
         let labeled_spend = spend_pubkey
             .combine(&label_tweak.public_key(&secp))
-            .map_err(|e| format!("failed to derive labeled spend pubkey {}: {}", label_value, e))?;
+            .map_err(|e| {
+                format!(
+                    "failed to derive labeled spend pubkey {}: {}",
+                    label_value, e
+                )
+            })?;
         let labeled_spend_pubkey = SpendPublicKey::from(labeled_spend);
         receiving_addresses.push(
             SpAddress::new(base_scan_pubkey.clone(), labeled_spend_pubkey, network).to_string(),
@@ -373,7 +381,10 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
         }));
     }
 
-    let eligible_pubkeys = eligible.iter().map(|entry| entry.public_key).collect::<Vec<_>>();
+    let eligible_pubkeys = eligible
+        .iter()
+        .map(|entry| entry.public_key)
+        .collect::<Vec<_>>();
     let eligible_refs = eligible_pubkeys.iter().collect::<Vec<_>>();
     let a_sum = PublicKey::combine_keys(&eligible_refs).map_err(|_| "point_at_infinity".to_owned());
     let a_sum = match a_sum {
@@ -569,7 +580,8 @@ fn normalize_outputs_to_scan(outputs_to_scan: &[String]) -> Result<HashSet<Strin
     let mut remaining = HashSet::new();
     for output in outputs_to_scan {
         let bytes = hex_decode(output).map_err(|e| e.to_string())?;
-        let pubkey = XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
+        let pubkey =
+            XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
         remaining.insert(hex_encode(pubkey.serialize()));
     }
     Ok(remaining)
@@ -598,7 +610,10 @@ fn build_sender_shared_secrets(
     Ok(entries)
 }
 
-fn calculate_input_hash(inputs: &[InputRequest], sum_input_pubkeys: &PublicKey) -> Result<[u8; 32]> {
+fn calculate_input_hash(
+    inputs: &[InputRequest],
+    sum_input_pubkeys: &PublicKey,
+) -> Result<[u8; 32]> {
     if inputs.is_empty() {
         return Err("no outpoints provided".to_owned());
     }
@@ -630,7 +645,10 @@ fn derive_partial_secret(a_sum: &SecretKey, input_hash: &[u8; 32]) -> Result<Sec
     a_sum.mul_tweak(&tweak.into()).map_err(|e| e.to_string())
 }
 
-fn build_recipient_list(groups: &[RecipientGroupRequest], network_name: &str) -> Result<Vec<SpAddress>> {
+fn build_recipient_list(
+    groups: &[RecipientGroupRequest],
+    network_name: &str,
+) -> Result<Vec<SpAddress>> {
     let network = map_network(network_name)?;
     let mut recipients = Vec::new();
     for group in groups {
@@ -822,7 +840,10 @@ fn build_label_entries(
         let spend_pubkey = b_spend
             .combine(&tweak.public_key(secp))
             .map_err(|e| format!("failed to combine label spend pubkey: {}", e))?;
-        entries.push(LabelEntry { spend_pubkey, tweak });
+        entries.push(LabelEntry {
+            spend_pubkey,
+            tweak,
+        });
     }
     Ok(entries)
 }
@@ -871,9 +892,7 @@ mod tests {
     #[test]
     fn send_case_19_uses_full_input_set_for_smallest_outpoint() {
         assert_case_matches_expected(
-            include_str!(
-                "../tests/fixtures/official_case_19_send_00.request.json"
-            ),
+            include_str!("../tests/fixtures/official_case_19_send_00.request.json"),
             include_str!(
                 "../../../tests/vectors/bip352/derived/v2/official_case_19_send_00.expected.json"
             ),
@@ -883,9 +902,7 @@ mod tests {
     #[test]
     fn send_case_21_uses_full_input_set_for_smallest_outpoint() {
         assert_case_matches_expected(
-            include_str!(
-                "../tests/fixtures/official_case_21_send_00.request.json"
-            ),
+            include_str!("../tests/fixtures/official_case_21_send_00.request.json"),
             include_str!(
                 "../../../tests/vectors/bip352/derived/v2/official_case_21_send_00.expected.json"
             ),
