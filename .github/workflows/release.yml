@@ -142,7 +142,7 @@ jobs:
           subject-path: build/sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}.tar.gz
 
       - name: Upload release archive
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}
           path: build/sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}.tar.gz
@@ -163,7 +163,7 @@ jobs:
           fi
 
       - name: Upload release bundle
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}-bundle
           path: build/release-bundles/${{ matrix.target }}
@@ -213,7 +213,7 @@ jobs:
           cp build/release_integrity.md "$dist/"
 
       - name: Upload per-arch macOS binaries
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: macos-${{ matrix.arch }}-raw-${{ env.RELEASE_VERSION }}
           path: build/macos-arch/${{ matrix.arch }}
@@ -317,7 +317,7 @@ jobs:
           subject-path: build/sp-differ-${{ env.RELEASE_VERSION }}-macos-universal.tar.gz
 
       - name: Upload universal archive
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: sp-differ-${{ env.RELEASE_VERSION }}-macos-universal
           path: build/sp-differ-${{ env.RELEASE_VERSION }}-macos-universal.tar.gz
@@ -338,7 +338,7 @@ jobs:
           fi
 
       - name: Upload universal release bundle
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: sp-differ-${{ env.RELEASE_VERSION }}-macos-universal-bundle
           path: build/release-bundles/macos-universal

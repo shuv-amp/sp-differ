@@ -80,7 +80,7 @@ jobs:
 
       - name: Upload nightly fuzz artifacts
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: nightly-fuzz-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: build/ci_artifacts/nightly-fuzz-${{ matrix.name }}.tar
@@ -149,7 +149,7 @@ jobs:
 
       - name: Upload nightly adapter fuzz artifacts
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: nightly-adapter-fuzz-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: build/ci_artifacts/nightly-adapter-fuzz-${{ matrix.name }}.tar
@@ -190,7 +190,7 @@ jobs:
 
       - name: Upload nightly introspection artifacts
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: nightly-fuzz-introspection-${{ github.run_id }}-${{ github.run_attempt }}
           path: build/ci_artifacts/nightly-fuzz-introspection.tar
