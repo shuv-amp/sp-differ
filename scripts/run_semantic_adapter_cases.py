@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from bip352_reference import verify_reference_manifest
 from bip352_vectors import write_json
-from semantic_adapter import build_semantic_request
+from semantic_adapter import build_semantic_request, validate_semantic_request
 from semantic_case_runner import build_adapter_command, read_case_v2, run_adapter
 from semantic_contract import compare_semantic_results, validate_semantic_result
 
@@ -29,6 +29,7 @@ def _render_markdown_report(report: Dict[str, Any]) -> str:
         "- upstream_commit: `{}`".format(report["upstream_commit"]),
         "- snapshot_sha256: `{}`".format(report["snapshot_sha256"]),
         "- cases: `{}`".format(report["derived_case_count"]),
+        "- skipped: `{}`".format(report.get("skipped_case_count", 0)),
         "- passed: `{}`".format(report["passed_case_count"]),
         "- failed: `{}`".format(report["failed_case_count"]),
         "",
@@ -50,6 +51,8 @@ def _render_markdown_report(report: Dict[str, Any]) -> str:
         lines.append("")
         lines.append("- kind: `{}`".format(failure["kind"]))
         lines.append("- errors: `{}`".format("; ".join(failure["errors"])))
+        if failure.get("expectation_mode"):
+            lines.append("- expectation_mode: `{}`".format(failure["expectation_mode"]))
         if failure.get("artifact_dir"):
             lines.append("- artifact_dir: `{}`".format(failure["artifact_dir"]))
         if failure.get("repro_cmd"):
@@ -58,6 +61,27 @@ def _render_markdown_report(report: Dict[str, Any]) -> str:
             lines.append("- promote: `{}`".format(failure["intake_cmd"]))
         lines.append("")
     return "\n".join(lines)
+
+
+def _case_targets_adapter(item: Dict[str, Any], adapter_name: str) -> bool:
+    target = item.get("adapter_name")
+    if target is not None:
+        if not isinstance(target, str) or not target:
+            raise RuntimeError(
+                "manifest case {} has invalid adapter_name".format(item.get("id", "<unknown>"))
+            )
+        return target == adapter_name
+
+    targets = item.get("adapter_names")
+    if targets is None:
+        return True
+    if not isinstance(targets, list) or not targets or not all(
+        isinstance(value, str) and value for value in targets
+    ):
+        raise RuntimeError(
+            "manifest case {} has invalid adapter_names".format(item.get("id", "<unknown>"))
+        )
+    return adapter_name in targets
 
 
 def _write_failure_artifacts(
@@ -69,7 +93,7 @@ def _write_failure_artifacts(
     official_vectors: Path,
     manifest_path: Path,
     timeout_seconds: float,
-    case_path: Path,
+    case_path: Optional[Path],
     expectation_path: Path,
     request: Dict[str, Any],
     expected: Dict[str, Any],
@@ -90,7 +114,8 @@ def _write_failure_artifacts(
     expected_path.write_text(json.dumps(expected, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if actual is not None:
         actual_path.write_text(json.dumps(actual, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    case_copy_path.write_text(case_path.read_text(encoding="ascii"), encoding="ascii")
+    if case_path is not None:
+        case_copy_path.write_text(case_path.read_text(encoding="ascii"), encoding="ascii")
 
     repro_cmd = [
         "python3",
@@ -125,7 +150,7 @@ def _write_failure_artifacts(
         "official_vectors": str(official_vectors),
         "manifest_path": str(manifest_path),
         "timeout_seconds": timeout_seconds,
-        "case_path": str(case_path),
+        "case_path": None if case_path is None else str(case_path),
         "expectation_path": str(expectation_path),
         "request_path": str(request_path),
         "expected_path": str(expected_path),
@@ -221,15 +246,27 @@ def main() -> int:
             args.official_manifest, args.official_vectors
         )
         manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-        cases = manifest.get("cases", [])
+        manifest_cases = manifest.get("cases", [])
+        if not isinstance(manifest_cases, list):
+            raise RuntimeError("manifest cases must be a list")
+        total_case_count = len(manifest_cases)
+        cases = manifest_cases
         if not isinstance(cases, list):
             raise RuntimeError("manifest cases must be a list")
         if args.case_id:
             cases = [item for item in cases if item.get("id") == args.case_id]
             if not cases:
                 raise RuntimeError("unknown case id: {}".format(args.case_id))
+            skipped_case_count = 0
         elif not cases and not args.allow_empty:
             raise RuntimeError("manifest has no cases")
+        else:
+            cases = [item for item in cases if _case_targets_adapter(item, args.adapter_name)]
+            skipped_case_count = total_case_count - len(cases)
+            if not cases and not args.allow_empty:
+                raise RuntimeError(
+                    "manifest has no cases for adapter {}".format(args.adapter_name)
+                )
         adapter_cmd, repro_target_args = build_adapter_command(args.adapter_cmd, args.worker_lib)
     except Exception as exc:
         print("error: {}".format(exc), file=sys.stderr)
@@ -241,33 +278,81 @@ def main() -> int:
     failures: List[Dict[str, Any]] = []
     passed = 0
     for item in cases:
-        case_path = args.manifest.parent / item["path"]
+        case_path_value = item.get("path")
+        case_path = None
+        if isinstance(case_path_value, str):
+            case_path = args.manifest.parent / case_path_value
         expectation_path = args.manifest.parent / item["expectation_path"]
+        request_path_value = item.get("request_path")
+        request_path = None
+        if isinstance(request_path_value, str):
+            request_path = args.manifest.parent / request_path_value
+        expectation_mode = item.get("expectation_mode", "oracle")
+        if expectation_mode not in ("oracle", "observed_actual"):
+            failures.append(
+                {
+                    "id": item.get("id", "<unknown>"),
+                    "kind": item.get("kind", "<unknown>"),
+                    "case_path": None if case_path is None else str(case_path),
+                    "expectation_path": str(expectation_path),
+                    "errors": ["unknown expectation_mode: {}".format(expectation_mode)],
+                    "expectation_mode": expectation_mode,
+                    "actual": None,
+                    "artifact_dir": None,
+                    "repro_cmd": None,
+                    "intake_cmd": None,
+                }
+            )
+            continue
         expected = None
+        tracked_actual = None
         request = None
         try:
             expected = validate_semantic_result(
                 json.loads(expectation_path.read_text(encoding="utf-8"))
             )
-            case = read_case_v2(case_path)
-            expectation_hints = None
-            if item["kind"] == "receive":
-                expectation_hints = {
-                    "detailed_outputs_required": bool(
-                        expected.get("detailed_outputs_available", True)
+            if request_path is not None:
+                request = validate_semantic_request(
+                    json.loads(request_path.read_text(encoding="utf-8"))
+                )
+            else:
+                if case_path is None:
+                    raise RuntimeError("manifest case is missing both path and request_path")
+                case = read_case_v2(case_path)
+                expectation_hints = None
+                if item["kind"] == "receive":
+                    expectation_hints = {
+                        "detailed_outputs_required": bool(
+                            expected.get("detailed_outputs_available", True)
+                        )
+                    }
+                request = build_semantic_request(
+                    item["kind"], case, expected["source"], expectation_hints=expectation_hints
+                )
+            if expectation_mode == "observed_actual":
+                observed_actual_path_value = item.get("observed_actual_path")
+                if not isinstance(observed_actual_path_value, str):
+                    raise RuntimeError(
+                        "manifest case {} is missing observed_actual_path".format(
+                            item.get("id", "<unknown>")
+                        )
                     )
-                }
-            request = build_semantic_request(
-                item["kind"], case, expected["source"], expectation_hints=expectation_hints
-            )
+                tracked_actual = validate_semantic_result(
+                    json.loads(
+                        (args.manifest.parent / observed_actual_path_value).read_text(
+                            encoding="utf-8"
+                        )
+                    )
+                )
         except Exception as exc:
             failures.append(
                 {
                     "id": item.get("id", "<unknown>"),
                     "kind": item.get("kind", "<unknown>"),
-                    "case_path": str(case_path),
+                    "case_path": None if case_path is None else str(case_path),
                     "expectation_path": str(expectation_path),
                     "errors": ["case setup failed: {}".format(exc)],
+                    "expectation_mode": expectation_mode,
                     "actual": None,
                     "artifact_dir": None,
                     "repro_cmd": None,
@@ -280,7 +365,22 @@ def main() -> int:
             actual = validate_semantic_result(
                 run_adapter(adapter_cmd, request, args.timeout_seconds)
             )
-            errors = compare_semantic_results(expected, actual)
+            oracle_errors = compare_semantic_results(expected, actual)
+            if tracked_actual is not None:
+                tracked_errors = compare_semantic_results(tracked_actual, actual)
+                if not tracked_errors:
+                    errors = []
+                elif not oracle_errors:
+                    errors = [
+                        "tracked divergence no longer reproduces: adapter now matches oracle"
+                    ]
+                else:
+                    errors = [
+                        "tracked divergence changed: {}".format("; ".join(tracked_errors)),
+                        "current oracle delta: {}".format("; ".join(oracle_errors)),
+                    ]
+            else:
+                errors = oracle_errors
         except Exception as exc:
             errors = ["adapter execution failed: {}".format(exc)]
             actual = None
@@ -315,9 +415,10 @@ def main() -> int:
                 {
                     "id": item["id"],
                     "kind": item["kind"],
-                    "case_path": str(case_path),
+                    "case_path": None if case_path is None else str(case_path),
                     "expectation_path": str(expectation_path),
                     "errors": errors,
+                    "expectation_mode": expectation_mode,
                     "actual": actual,
                     "artifact_dir": None if failure_artifact_dir is None else str(failure_artifact_dir),
                     "repro_cmd": repro_cmd,
@@ -356,6 +457,7 @@ def main() -> int:
         "snapshot_sha256": verification["snapshot_sha256"],
         "derived_manifest": str(args.manifest),
         "derived_case_count": len(cases),
+        "skipped_case_count": skipped_case_count,
         "passed_case_count": passed,
         "failed_case_count": len(failures),
         "failures": failures,

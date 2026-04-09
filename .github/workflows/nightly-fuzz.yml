@@ -86,3 +86,113 @@ jobs:
           path: build/ci_artifacts/nightly-fuzz-${{ matrix.name }}.tar
           if-no-files-found: error
           retention-days: 30
+
+  semantic-adapter-fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: spdk
+            make_target: fuzz-semantic-spdk-adapter
+            report_prefix: spdk
+          - name: silent-payments
+            make_target: fuzz-semantic-silent-payments-adapter
+            report_prefix: silent_payments
+          - name: bip352
+            make_target: fuzz-semantic-bip352-adapter
+            report_prefix: bip352
+          - name: go-bip352
+            make_target: fuzz-semantic-go-bip352-adapter
+            report_prefix: go_bip352
+          - name: bdk-sp
+            make_target: fuzz-semantic-bdk-sp
+            report_prefix: bdk_sp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN_VERSION }}
+
+      - name: Install Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: adapters/go_bip352/go.mod
+          cache-dependency-path: adapters/go_bip352/go.sum
+
+      - name: Longer deterministic semantic-adapter fuzz
+        run: make ${{ matrix.make_target }}
+        env:
+          FUZZ_SEED: 352
+          FUZZ_STRUCTURED_ITERATIONS: 256
+
+      - name: Package nightly adapter fuzz artifacts
+        if: always()
+        run: |
+          python scripts/package_ci_artifacts.py \
+            --label nightly-adapter-fuzz-${{ matrix.name }} \
+            --output build/ci_artifacts/nightly-adapter-fuzz-${{ matrix.name }}.tar \
+            --path build/${{ matrix.report_prefix }}_semantic_adapter_fuzz_report.json \
+            --path build/${{ matrix.report_prefix }}_semantic_adapter_fuzz_report.md \
+            --path build/${{ matrix.report_prefix }}_semantic_adapter_fuzz_artifacts \
+            --path fuzz/corpus/semantic_worker/manifest.json \
+            --path tests/regressions/semantic/manifest.json
+
+      - name: Upload nightly adapter fuzz artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nightly-adapter-fuzz-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/ci_artifacts/nightly-adapter-fuzz-${{ matrix.name }}.tar
+          if-no-files-found: error
+          retention-days: 30
+
+  semantic-fuzz-introspection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Verify corpus and generate introspection report
+        run: |
+          make fuzz-corpus
+          python scripts/semantic_fuzz_introspector.py \
+            --json-out build/semantic_fuzz_introspection.json \
+            --markdown-out build/semantic_fuzz_introspection.md
+
+      - name: Package nightly introspection artifacts
+        if: always()
+        run: |
+          python scripts/package_ci_artifacts.py \
+            --label nightly-fuzz-introspection \
+            --output build/ci_artifacts/nightly-fuzz-introspection.tar \
+            --path build/semantic_fuzz_introspection.json \
+            --path build/semantic_fuzz_introspection.md \
+            --path fuzz/corpus/semantic_worker/manifest.json \
+            --path tests/error_surfaces/semantic/manifest.json \
+            --path tests/vectors/bip352/derived/v2/manifest.json \
+            --path tests/regressions/semantic/manifest.json
+
+      - name: Upload nightly introspection artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nightly-fuzz-introspection-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/ci_artifacts/nightly-fuzz-introspection.tar
+          if-no-files-found: error
+          retention-days: 30

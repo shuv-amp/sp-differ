@@ -76,10 +76,13 @@ sp-differ status --profile release --require-green
 - Run the tracked semantic regression suite against the green adapters: `make regressions`
 - Check the semantic worker fuzz corpus: `make fuzz-corpus`
 - Exercise the fuzz minimizer in isolation: `make fuzz-minimizer-smoke`
+- Write the semantic fuzz introspection report: `make fuzz-introspect`
+- Run the tracked reserved semantic-status lane without contaminating the valid fuzz corpus: `make semantic-error-surfaces`
 - Run deterministic semantic-worker fuzzing against SPDK: `make fuzz-semantic-spdk`
 - Run deterministic semantic-worker fuzzing against `silent-payments`: `make fuzz-semantic-silent-payments`
 - Run deterministic semantic-worker fuzzing against `bip352`: `make fuzz-semantic-bip352`
 - Run deterministic semantic-worker fuzzing against `go-bip352`: `make fuzz-semantic-go-bip352`
+- Run deterministic semantic-adapter fuzzing across the current adapter set: `make fuzz-semantic-adapters`
 - Run the longer deterministic semantic-worker fuzz matrix across all workers: `make fuzz-semantic-workers FUZZ_STRUCTURED_ITERATIONS=64 FUZZ_RAW_ITERATIONS=64`
 - Audit the vendored official BIP352 vectors and run the current derived subset through both byte-worker libraries: `make vectors`
 - Parse a case file: `python3 scripts/parse_case.py tests/vectors/example.hex`
@@ -103,17 +106,19 @@ sp-differ status --profile release --require-green
 - The historical `silent-payments` send mismatch was a wrapper bug: the adapter filtered out ineligible inputs before sender construction, which changed the lexicographically smallest serialized outpoint used by the upstream sender.
 - Longer deterministic fuzzing also flushed out two smaller wrapper-level bugs that are now covered by unit tests: send-side `input_hash` must use `a_sum * G` rather than extracted input pubkeys, and the `bip352` receive path must only validate output pubkeys when scanning is actually reached so point-at-infinity short-circuits still match the oracle.
 - The `go-bip352` wrapper also needed one normalization-layer fix before it was promoted into the green set: the official count-only `K_max` receive case must stop at `2323` matches even though the upstream library can continue scanning the 2,324th match.
-- Semantic adapter runs now produce JSON reports, markdown summaries, and replayable per-failure artifacts under `build/`; adapter fuzz artifacts now also carry exact-request replay commands instead of only a broad seed rerun.
+- Semantic adapter runs now produce JSON reports, markdown summaries, and replayable per-failure artifacts under `build/`; adapter fuzz artifacts also auto-minimize structured mismatches and emit intake-ready regression bundles under `minimized/`.
 - Failure artifact directories now include a one-command promotion path into `tests/regressions/semantic/`, and `make regressions` replays tracked cases with the same semantic compare engine.
 - The repo now also has a deterministic semantic-worker fuzz corpus under `fuzz/corpus/semantic_worker/` plus a replayable fuzz runner that cross-checks structured valid mutations against the vendored reference path and throws malformed raw payloads at the semantic worker ABI.
+- The checked-in valid corpus intentionally includes a small synthetic coverage variant set on top of the derived/regression seeds so alternate networks, nonzero silent-payment versions, and explicit input `pubkey` metadata do not fall out of the seed set by accident.
 - Semantic worker fuzz failures are now auto-minimized before they are written under `build/`: the reducer keeps the same failure signature, saves a reduced replay input under `minimized/`, and emits a promotable regression bundle for structured failures that still round-trip into case format v2.
+- `scripts/semantic_fuzz_introspector.py` writes a structure-aware nightly report that highlights which tracked seed ids are present in the corpus and which request/semantic dimensions still have no coverage. It now also knows about `tests/error_surfaces/semantic/manifest.json`, so reserved semantic statuses covered by the dedicated error-surface lane are not misreported as valid-corpus gaps. The report is heuristic rather than compiler-instrumented coverage, so treat it as a maintainer map for new seeds, not as a proof that every branch is exercised.
 - Structured fuzz mutations now use valid secp256k1 pubkeys and secret scalars for the fields they randomize, which keeps the long deterministic fuzz lane focused on semantic behavior instead of off-curve junk.
 - `sp_differ_cli.py` is the public repo-local entrypoint: it wraps canonical verification profiles, writes release-readiness summaries, and can replay saved failure artifacts without making users remember the individual helper scripts.
 - `sp_differ_cli.py verify --refresh-external-probe` is the networked sign-off variant: when external-probe candidate metadata is present, it reruns the external BIP352 probe before producing the final release verdict. Without that metadata it still produces the live readiness report and notes that upstream freshness was not evaluated.
 - When `build/bip352_external_probe.json` exists, the same CLI status/report path also folds in the live integrated-adapter freshness probe and marks the report failed or incomplete on stale, failed, or partial external evidence.
 - The CLI packaging path is verified through `python3 -m pip install --editable .`, and the installed `sp-differ` console entrypoint now works against the current repo checkout.
 - `.github/workflows/ci.yml` currently runs the regular Ubuntu `Build, Test, and Smoke` lane on pushes and pull requests targeting `main`.
-- `.github/workflows/nightly-fuzz.yml` carries the longer scheduled semantic-worker fuzz jobs, while `.github/workflows/maturity.yml` carries scheduled live release verification, benchmark runs, and release-evidence artifact generation.
+- `.github/workflows/nightly-fuzz.yml` carries the longer scheduled semantic-worker and semantic-adapter fuzz jobs plus the semantic fuzz introspection report, while `.github/workflows/maturity.yml` carries scheduled live release verification, benchmark runs, and release-evidence artifact generation.
 - `scripts/package_ci_artifacts.py` now tars CI outputs before upload so replay scripts keep their permissions and the workflow artifacts preserve the original directory layout.
 - `make vectors` runs the upstream oracle, validates the full derived v2 semantic corpus, checks the derived v1-compatible subset, and runs that v1 subset through both byte-worker libraries.
 - The original compiled worker ABI is still v1-only, but the compiled runner/compare surface is no longer: v2 sender/receiver execution now also exists through `../spec/SEMANTIC_ADAPTER.md`, `../ffi/sp_differ_semantic.h`, the semantic bridge helper, and the in-tree semantic adapters/workers.

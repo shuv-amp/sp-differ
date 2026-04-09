@@ -475,6 +475,7 @@ def main_smoke() -> int:
             "go_bip352_semantic_adapter_report.json",
             "go_bip352_semantic_worker_report.json",
             "bdk_sp_semantic_adapter_report.json",
+            "semantic_error_surface_report.json",
             "semantic_regressions_reference.json",
             "semantic_regressions_spdk_rust.json",
             "semantic_regressions_spdk_rust_ffi.json",

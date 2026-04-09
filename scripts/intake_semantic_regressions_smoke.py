@@ -18,7 +18,7 @@ def _write_json(path: Path, payload: Dict[str, object]) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def _create_artifact(root: Path, index: int) -> Path:
+def _create_artifact(root: Path, index: int, include_case_hex: bool = True) -> Path:
     artifact_dir = root / "artifacts" / "case_{:02d}".format(index)
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
@@ -38,7 +38,8 @@ def _create_artifact(root: Path, index: int) -> Path:
     _write_json(artifact_dir / "request.json", {"kind": "send"})
     _write_json(artifact_dir / "expected.json", {"source": "corpus"})
     _write_json(artifact_dir / "actual.json", {"semantic_status": "ok"})
-    (artifact_dir / "case.hex").write_text("00\n", encoding="ascii")
+    if include_case_hex:
+        (artifact_dir / "case.hex").write_text("00\n", encoding="ascii")
 
     expected_dir = root / "tests" / "regressions" / "semantic" / "cases" / regression_id
     if expected_dir.exists():
@@ -54,7 +55,7 @@ def main() -> int:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
         artifact_a = _create_artifact(tmp_root, 1)
-        artifact_b = _create_artifact(tmp_root, 2)
+        artifact_b = _create_artifact(tmp_root, 2, include_case_hex=False)
 
         cmd_a = [
             sys.executable,
@@ -69,6 +70,8 @@ def main() -> int:
             str(INTAKE),
             "--manifest",
             str(manifest_path),
+            "--expectation-mode",
+            "observed_actual",
             "--artifact-dir",
             str(artifact_b),
         ]
@@ -90,11 +93,20 @@ def main() -> int:
             print("intake smoke failed: expected ids {} got {}".format(expected_ids, ids), file=sys.stderr)
             return 2
 
-        for regression_id in expected_ids:
-            case_hex_path = manifest_path.parent / "cases" / regression_id / "case.hex"
-            if not case_hex_path.exists():
-                print("intake smoke failed: missing promoted artifact {}".format(case_hex_path), file=sys.stderr)
-                return 2
+        first_entry = next(item for item in cases if item["id"] == expected_ids[0])
+        second_entry = next(item for item in cases if item["id"] == expected_ids[1])
+
+        case_hex_path = manifest_path.parent / first_entry["path"]
+        if not case_hex_path.exists():
+            print("intake smoke failed: missing promoted artifact {}".format(case_hex_path), file=sys.stderr)
+            return 2
+
+        if "path" in second_entry:
+            print("intake smoke failed: request-only entry unexpectedly kept a case path", file=sys.stderr)
+            return 2
+        if second_entry.get("expectation_mode") != "observed_actual":
+            print("intake smoke failed: expected observed_actual mode on request-only entry", file=sys.stderr)
+            return 2
 
     print("semantic intake concurrency smoke OK")
     return 0

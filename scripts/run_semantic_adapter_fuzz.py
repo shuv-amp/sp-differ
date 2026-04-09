@@ -15,8 +15,14 @@ from typing import Any, Dict, List, Optional, Tuple
 from bip352_reference import load_reference_module
 from bip352_semantics import derive_receive_semantics, derive_sender_semantics
 from bip352_vectors import write_json
+from parse_case import ParseError, serialize_case_v2
 from semantic_adapter import case_from_semantic_request, validate_semantic_request
 from semantic_contract import compare_semantic_results, validate_semantic_result
+from semantic_fuzz_minimizer import (
+    SemanticFuzzMinimizerError,
+    canonical_semantic_request_bytes,
+    minimize_structured_request,
+)
 from run_semantic_worker_fuzz import _mutate_valid_request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +36,10 @@ class SemanticAdapterFuzzError(Exception):
 
 def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _canonical_request_bytes(payload: Dict[str, Any]) -> bytes:
+    return canonical_semantic_request_bytes(payload)
 
 
 def _load_reference_module():
@@ -111,6 +121,14 @@ def _run_adapter(command: List[str], request: Dict[str, Any], timeout_seconds: f
     return {"outcome": "success", "error": None, "result": result}
 
 
+def _request_case_hex(request: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
+    try:
+        case = case_from_semantic_request(request, preserve_declared_flags=False)
+        return serialize_case_v2(case).hex(), None
+    except (ParseError, ValueError) as exc:
+        return None, str(exc)
+
+
 def _evaluate_request(
     reference_module,
     adapter_cmd: List[str],
@@ -140,6 +158,57 @@ def _evaluate_request(
     }
 
 
+def _structured_failure_observation(
+    reference_outcome: str,
+    reference_result: Optional[Dict[str, Any]],
+    reference_error: Optional[str],
+    adapter_result: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    if reference_outcome == "success" and adapter_result["outcome"] == "success":
+        errors = sorted(compare_semantic_results(reference_result, adapter_result["result"]))
+        if not errors:
+            return None
+        return {
+            "failure_class": "semantic_mismatch",
+            "signature": {
+                "class": "semantic_mismatch",
+                "errors": errors,
+            },
+            "errors": errors,
+            "error_summary": "; ".join(errors),
+            "reference_outcome": reference_outcome,
+            "reference_result": reference_result,
+            "reference_error": None,
+            "adapter_result": adapter_result,
+        }
+    if reference_outcome == "error" and adapter_result["outcome"] == "error":
+        return None
+
+    signature: Dict[str, Any] = {
+        "class": "outcome_mismatch",
+        "reference_outcome": reference_outcome,
+        "adapter_outcome": adapter_result["outcome"],
+    }
+    if reference_outcome == "success" and reference_result is not None:
+        signature["reference_semantic_status"] = reference_result["semantic_status"]
+    if adapter_result["outcome"] == "success" and adapter_result["result"] is not None:
+        signature["adapter_semantic_status"] = adapter_result["result"]["semantic_status"]
+
+    error = "reference outcome {} vs adapter outcome {}".format(
+        reference_outcome, adapter_result["outcome"]
+    )
+    return {
+        "failure_class": "outcome_mismatch",
+        "signature": signature,
+        "errors": [error],
+        "error_summary": error,
+        "reference_outcome": reference_outcome,
+        "reference_result": reference_result,
+        "reference_error": reference_error,
+        "adapter_result": adapter_result,
+    }
+
+
 def _write_failure_artifact(
     artifact_root: Path,
     index: int,
@@ -153,7 +222,7 @@ def _write_failure_artifact(
     reference_error: Optional[str],
     adapter_result: Dict[str, Any],
     errors: List[str],
-) -> Path:
+) -> Tuple[Path, Dict[str, Any]]:
     failure_dir = artifact_root / "{:04d}".format(index)
     failure_dir.mkdir(parents=True, exist_ok=True)
 
@@ -205,7 +274,137 @@ def _write_failure_artifact(
     )
     replay_path.chmod(0o755)
 
-    return failure_dir
+    return failure_dir, summary
+
+
+def _write_minimized_structured_artifact(
+    failure_dir: Path,
+    adapter_name: str,
+    adapter_cmd: List[str],
+    timeout_seconds: float,
+    failure_summary: Dict[str, Any],
+    original_request: Dict[str, Any],
+    minimization: Dict[str, Any],
+) -> Dict[str, Any]:
+    minimized_dir = failure_dir / "minimized"
+    minimized_dir.mkdir(parents=True, exist_ok=True)
+
+    request = minimization["request"]
+    observation = minimization["observation"]
+    adapter_result = observation["adapter_result"]
+    request_bytes = _canonical_request_bytes(request)
+    request_path = minimized_dir / "request.json"
+    expected_path = minimized_dir / "expected.json"
+    actual_path = minimized_dir / "actual.json"
+    summary_path = minimized_dir / "summary.json"
+    replay_report_path = minimized_dir / "replay_report.json"
+    replay_path = minimized_dir / "replay.sh"
+    promote_path = minimized_dir / "promote.sh"
+
+    write_json(request_path, request)
+    if observation["reference_result"] is not None:
+        write_json(expected_path, observation["reference_result"])
+    if adapter_result.get("result") is not None:
+        write_json(actual_path, adapter_result["result"])
+    if observation.get("reference_error") is not None:
+        (minimized_dir / "reference_error.txt").write_text(
+            observation["reference_error"] + "\n", encoding="utf-8"
+        )
+    if adapter_result.get("error") is not None:
+        (minimized_dir / "adapter_error.txt").write_text(
+            adapter_result["error"] + "\n", encoding="utf-8"
+        )
+
+    case_hex, case_error = _request_case_hex(request)
+    if case_hex is not None:
+        (minimized_dir / "case.hex").write_text(case_hex + "\n", encoding="ascii")
+    elif case_error is not None:
+        (minimized_dir / "case_error.txt").write_text(case_error + "\n", encoding="utf-8")
+
+    replay_cmd = [
+        "python3",
+        "scripts/run_semantic_adapter_fuzz.py",
+        "--adapter-name",
+        adapter_name,
+        "--adapter-cmd",
+        shlex.join(adapter_cmd),
+        "--request-path",
+        str(request_path),
+        "--timeout-seconds",
+        str(timeout_seconds),
+        "--json-out",
+        str(replay_report_path),
+    ]
+    replay_path.write_text(
+        "#!/bin/sh\nset -eu\n{}\n".format(shlex.join(replay_cmd)),
+        encoding="utf-8",
+    )
+    replay_path.chmod(0o755)
+
+    minimized_summary: Dict[str, Any] = {
+        "kind": "structured",
+        "status": "reduced"
+        if len(request_bytes) < len(_canonical_request_bytes(original_request))
+        else "unchanged",
+        "failure_id": failure_summary["id"],
+        "adapter_name": adapter_name,
+        "failure_class": observation["failure_class"],
+        "signature": observation["signature"],
+        "errors": observation["errors"],
+        "original_payload_bytes": len(_canonical_request_bytes(original_request)),
+        "minimized_payload_bytes": len(request_bytes),
+        "stats": minimization["stats"],
+        "repro_cmd": shlex.join(replay_cmd),
+    }
+
+    intake_cmd = None
+    bundle_dir = None
+    if case_hex is not None and observation["reference_result"] is not None:
+        bundle_dir = minimized_dir / "regression_bundle"
+        bundle_dir.mkdir(parents=True, exist_ok=True)
+        bundle_id = "{}__fuzz_{}".format(
+            request.get("source", {}).get("id", "semantic_adapter_fuzz"),
+            failure_summary["id"],
+        )
+        write_json(
+            bundle_dir / "summary.json",
+            {
+                "id": bundle_id,
+                "adapter_name": adapter_name,
+                "errors": observation["errors"],
+                "repro_cmd": shlex.join(replay_cmd),
+            },
+        )
+        write_json(bundle_dir / "request.json", request)
+        write_json(bundle_dir / "expected.json", observation["reference_result"])
+        if adapter_result.get("result") is not None:
+            write_json(bundle_dir / "actual.json", adapter_result["result"])
+        (bundle_dir / "case.hex").write_text(case_hex + "\n", encoding="ascii")
+
+        intake_cmd = [
+            "python3",
+            "scripts/intake_semantic_regressions.py",
+            "--artifact-dir",
+            str(bundle_dir),
+        ]
+        promote_path.write_text(
+            "#!/bin/sh\nset -eu\n{}\n".format(shlex.join(intake_cmd)),
+            encoding="utf-8",
+        )
+        promote_path.chmod(0o755)
+        minimized_summary["intake_cmd"] = shlex.join(intake_cmd)
+        minimized_summary["regression_bundle_dir"] = str(bundle_dir)
+        minimized_summary["regression_bundle_id"] = bundle_id
+
+    write_json(summary_path, minimized_summary)
+    return {
+        "minimized_dir": str(minimized_dir),
+        "minimized_summary_path": str(summary_path),
+        "minimized_payload_bytes": len(request_bytes),
+        "intake_cmd": None if intake_cmd is None else shlex.join(intake_cmd),
+        "regression_bundle_dir": None if bundle_dir is None else str(bundle_dir),
+        "regression_bundle_id": None if bundle_dir is None else minimized_summary["regression_bundle_id"],
+    }
 
 
 def _render_markdown(report: Dict[str, Any]) -> str:
@@ -232,6 +431,13 @@ def _render_markdown(report: Dict[str, Any]) -> str:
         lines.append("- errors: `{}`".format("; ".join(failure["errors"])))
         if failure.get("artifact_dir"):
             lines.append("- artifact_dir: `{}`".format(failure["artifact_dir"]))
+        minimization = failure.get("minimization")
+        if isinstance(minimization, dict):
+            lines.append("- minimized_dir: `{}`".format(minimization.get("minimized_dir")))
+            if minimization.get("intake_cmd"):
+                lines.append("- promote: `{}`".format(minimization["intake_cmd"]))
+        if failure.get("minimization_error"):
+            lines.append("- minimization_error: `{}`".format(failure["minimization_error"]))
         lines.append("")
     return "\n".join(lines)
 
@@ -334,13 +540,14 @@ def main() -> int:
         seed_id: str,
         description: str,
         request: Dict[str, Any],
+        reference_outcome: Optional[str],
         reference_result: Optional[Dict[str, Any]],
         reference_error: Optional[str],
         adapter_result: Dict[str, Any],
         errors: List[str],
     ) -> None:
         failure_id = "{:04d}".format(len(failures))
-        artifact_dir = _write_failure_artifact(
+        artifact_dir, summary = _write_failure_artifact(
             args.artifact_dir,
             len(failures),
             seed_id,
@@ -354,6 +561,56 @@ def main() -> int:
             adapter_result,
             errors,
         )
+        minimization_info = None
+        minimization_error = None
+        try:
+            if reference_outcome is not None:
+                base_observation = _structured_failure_observation(
+                    reference_outcome,
+                    reference_result,
+                    reference_error,
+                    adapter_result,
+                )
+                if base_observation is not None:
+                    target_signature = base_observation["signature"]
+
+                    def is_interesting(candidate_request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+                        evaluation = _evaluate_request(
+                            reference_module,
+                            adapter_cmd,
+                            candidate_request,
+                            args.timeout_seconds,
+                        )
+                        observation = _structured_failure_observation(
+                            evaluation["reference_outcome"],
+                            evaluation["reference_result"],
+                            evaluation["reference_error"],
+                            evaluation["adapter_result"],
+                        )
+                        if observation is None or observation["signature"] != target_signature:
+                            return None
+                        return observation
+
+                    minimization = minimize_structured_request(request, is_interesting)
+                    minimization_info = _write_minimized_structured_artifact(
+                        artifact_dir,
+                        args.adapter_name,
+                        adapter_cmd,
+                        args.timeout_seconds,
+                        summary,
+                        request,
+                        minimization,
+                    )
+        except SemanticFuzzMinimizerError as exc:
+            minimization_error = str(exc)
+        except Exception as exc:
+            minimization_error = str(exc)
+
+        if minimization_info is not None:
+            summary["minimization"] = minimization_info
+        if minimization_error is not None:
+            summary["minimization_error"] = minimization_error
+        write_json(artifact_dir / "summary.json", summary)
         failures.append(
             {
                 "id": failure_id,
@@ -361,6 +618,8 @@ def main() -> int:
                 "description": description,
                 "errors": errors,
                 "artifact_dir": str(artifact_dir),
+                "minimization": minimization_info,
+                "minimization_error": minimization_error,
             }
         )
 
@@ -380,6 +639,7 @@ def main() -> int:
                     seed_id,
                     "baseline",
                     request,
+                    reference_outcome,
                     reference_result,
                     None,
                     adapter_result,
@@ -394,6 +654,7 @@ def main() -> int:
                 seed_id,
                 "baseline",
                 request,
+                reference_outcome,
                 reference_result,
                 reference_error,
                 adapter_result,
@@ -417,6 +678,7 @@ def main() -> int:
                 seed_request,
                 None,
                 None,
+                None,
                 {"outcome": "mutation_error", "error": str(exc), "result": None},
                 [str(exc)],
             )
@@ -435,6 +697,7 @@ def main() -> int:
                     seed_id,
                     description,
                     mutated_request,
+                    reference_outcome,
                     reference_result,
                     None,
                     adapter_result,
@@ -449,6 +712,7 @@ def main() -> int:
                 seed_id,
                 description,
                 mutated_request,
+                reference_outcome,
                 reference_result,
                 reference_error,
                 adapter_result,

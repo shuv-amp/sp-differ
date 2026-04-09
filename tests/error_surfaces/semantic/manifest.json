@@ -1,0 +1,53 @@
+{
+  "byte_worker_cases": [
+    {
+      "builder": "pubkey_mismatch",
+      "description": "Optional input pubkey does not match the supplied private key.",
+      "id": "runtime_invalid_input_pubkey_mismatch",
+      "semantic_status": "invalid_input"
+    },
+    {
+      "builder": "invalid_scan_pubkey",
+      "description": "Compressed-looking scan pubkey fails full secp256k1 parsing.",
+      "id": "runtime_invalid_pubkey_scan_parse",
+      "semantic_status": "invalid_pubkey"
+    },
+    {
+      "builder": "tweak_cancels_spend_pubkey",
+      "description": "Derived output tweak cancels the spend pubkey to infinity.",
+      "id": "runtime_tweak_out_of_range_spend_cancel",
+      "semantic_status": "tweak_out_of_range"
+    }
+  ],
+  "cases": [
+    {
+      "description": "Synthetic send-side reserved contract fixture for invalid_input.",
+      "id": "synthetic_invalid_input_send",
+      "kind": "send",
+      "path": "cases/invalid_input_send.json",
+      "semantic_status": "invalid_input"
+    },
+    {
+      "description": "Synthetic receive-side reserved contract fixture for invalid_pubkey.",
+      "id": "synthetic_invalid_pubkey_receive",
+      "kind": "receive",
+      "path": "cases/invalid_pubkey_receive.json",
+      "semantic_status": "invalid_pubkey"
+    },
+    {
+      "description": "Synthetic send-side reserved contract fixture for tweak_out_of_range.",
+      "id": "synthetic_tweak_out_of_range_send",
+      "kind": "send",
+      "path": "cases/tweak_out_of_range_send.json",
+      "semantic_status": "tweak_out_of_range"
+    },
+    {
+      "description": "Synthetic receive-side reserved contract fixture for internal.",
+      "id": "synthetic_internal_receive",
+      "kind": "receive",
+      "path": "cases/internal_receive.json",
+      "semantic_status": "internal"
+    }
+  ],
+  "semantic_error_surface_version": 1
+}

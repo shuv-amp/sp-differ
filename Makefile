@@ -46,6 +46,7 @@ COMPARE_SRC := src/runner/sp_differ_compare.cpp
 CLI_SRC := src/cli/main.cpp
 WORKER_API_SRC := src/runner/worker.cpp
 SEMANTIC_BRIDGE_SRC := src/runner/semantic_bridge.cpp
+SEMANTIC_ENCODING_SRC := src/runner/semantic_encoding.cpp
 SEMANTIC_JSON_SRC := src/runner/semantic_json.cpp
 SEMANTIC_CONTRACT_SRC := src/runner/semantic_contract.cpp
 REPORTER_SRC := src/reporter/reporter.cpp
@@ -176,7 +177,7 @@ SANITIZE_CXXFLAGS ?= -std=c++17 -O1 -g -fPIC -fno-omit-frame-pointer -fsanitize=
 WARN_BUILD_DIR ?= $(BUILD_DIR)/warnings
 WARN_CXXFLAGS ?= $(CXXFLAGS) -Wall -Wextra -Wpedantic -Werror
 CLANG_TIDY ?= clang-tidy
-CLANG_TIDY_SOURCES := $(RUNNER_SRC) $(COMPARE_SRC) $(CLI_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(REPORTER_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(WORKER_SRC)
+CLANG_TIDY_SOURCES := $(RUNNER_SRC) $(COMPARE_SRC) $(CLI_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(REPORTER_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(WORKER_SRC)
 CLANG_TIDY_CXXFLAGS := -std=c++17 $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS)
 UBSAN_OPTIONS ?= print_stacktrace=1:halt_on_error=1
 ifeq ($(UNAME_S),Darwin)
@@ -218,6 +219,7 @@ endif
 .PHONY: smoke-rust
 .PHONY: diff
 .PHONY: semantic-smoke
+.PHONY: semantic-error-surfaces
 .PHONY: check-scripts
 .PHONY: check-claims
 .PHONY: check-comments
@@ -255,6 +257,7 @@ endif
 .PHONY: native-reference-fuzz
 .PHONY: fuzz-corpus-refresh
 .PHONY: fuzz-minimizer-smoke
+.PHONY: fuzz-introspect
 .PHONY: fuzz-semantic-spdk
 .PHONY: fuzz-semantic-silent-payments
 .PHONY: fuzz-semantic-bip352
@@ -375,21 +378,21 @@ $(WORKER_LIB): $(WORKER_SRC) $(CASE_SRC)
 
 runner: $(RUNNER_BIN)
 
-$(RUNNER_BIN): $(BUILD_VERSION_STAMP) $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(RUNNER_BIN): $(BUILD_VERSION_STAMP) $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 
 compare: $(COMPARE_BIN)
 
-$(COMPARE_BIN): $(BUILD_VERSION_STAMP) $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(COMPARE_BIN): $(BUILD_VERSION_STAMP) $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 
 cli: $(CLI_BIN)
 
-$(CLI_BIN): $(BUILD_VERSION_STAMP) $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(CLI_BIN): $(BUILD_VERSION_STAMP) $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 
 check: $(CORE_SMOKE_BIN) $(CASE_SMOKE_BIN) $(VALIDATE_SMOKE_BIN)
 	$(CORE_SMOKE_BIN)
@@ -429,7 +432,7 @@ check-scripts:
 	$(PYTHON) scripts/parse_case.py tests/vectors/example_v2.hex
 	$(PYTHON) scripts/validate_output.py tests/vectors/output_ok.hex
 	$(PYTHON) scripts/runner_smoke.py tests/vectors/example.hex
-	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/check_workflow_hardening.py scripts/workflow_hardening_smoke.py scripts/check_exported_symbols.py scripts/verify_release_attestation.py scripts/release_attestation_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py
+	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/check_workflow_hardening.py scripts/workflow_hardening_smoke.py scripts/check_exported_symbols.py scripts/run_clang_tidy.py scripts/clang_tidy_smoke.py scripts/verify_release_attestation.py scripts/release_attestation_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/semantic_regressions_smoke.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_adapter_fuzz_smoke.py scripts/semantic_fuzz_introspector.py scripts/semantic_fuzz_introspector_smoke.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py scripts/run_semantic_error_surfaces.py scripts/semantic_error_surface_smoke.py
 	$(MAKE) check-claims PYTHON=$(PYTHON)
 	$(MAKE) check-comments PYTHON=$(PYTHON)
 	$(MAKE) check-workflows PYTHON=$(PYTHON)
@@ -441,7 +444,11 @@ check-scripts:
 	$(PYTHON) scripts/release_prereqs_smoke.py
 	$(PYTHON) scripts/verify_packaged_release_smoke.py
 	$(PYTHON) scripts/semantic_fuzz_minimizer_smoke.py
+	$(PYTHON) scripts/semantic_adapter_fuzz_smoke.py
+	$(PYTHON) scripts/semantic_fuzz_introspector_smoke.py
+	$(MAKE) semantic-error-surfaces
 	$(PYTHON) scripts/intake_semantic_regressions_smoke.py
+	$(PYTHON) scripts/semantic_regressions_smoke.py
 	$(PYTHON) scripts/bip352_external_probe_smoke.py
 	$(PYTHON) scripts/semantic_benchmark_smoke.py
 	$(PYTHON) scripts/release_evidence_smoke.py
@@ -607,9 +614,9 @@ fuzz-harness:
 
 fuzz-driver: $(FUZZ_DRIVER_BIN)
 
-$(FUZZ_DRIVER_BIN): $(BUILD_VERSION_STAMP) $(FUZZ_DRIVER_SRC) $(FUZZ_HARNESS_OBJ) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(WORKER_API_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(FUZZ_DRIVER_BIN): $(BUILD_VERSION_STAMP) $(FUZZ_DRIVER_SRC) $(FUZZ_HARNESS_OBJ) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(WORKER_API_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) -fsanitize=address $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(FUZZ_DRIVER_SRC) $(FUZZ_HARNESS_OBJ) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(WORKER_API_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(CXX) $(CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) -fsanitize=address $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(FUZZ_DRIVER_SRC) $(FUZZ_HARNESS_OBJ) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(WORKER_API_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 
 native-reference-fuzz: cli fuzz-harness fuzz-driver
 	$(FUZZ_DRIVER_BIN) --iterations 10000 --seed $(FUZZ_SEED)
@@ -620,6 +627,12 @@ fuzz-corpus-refresh:
 
 fuzz-minimizer-smoke:
 	$(PYTHON) scripts/semantic_fuzz_minimizer_smoke.py
+
+fuzz-introspect: fuzz-corpus
+	$(PYTHON) scripts/semantic_fuzz_introspector.py --json-out build/semantic_fuzz_introspection.json --markdown-out build/semantic_fuzz_introspection.md
+
+semantic-error-surfaces: compare worker worker-rust
+	$(PYTHON) scripts/run_semantic_error_surfaces.py --json-out build/semantic_error_surface_report.json --markdown-out build/semantic_error_surface_report.md
 
 fuzz-semantic-spdk: fuzz-corpus
 	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
@@ -675,9 +688,11 @@ parity-smoke: worker worker-rust
 	$(PYTHON) scripts/byte_worker_parity_smoke.py
 
 precommit-smoke:
-	$(PYTHON) -m py_compile scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py
+	$(PYTHON) -m py_compile scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/semantic_adapter_fuzz_smoke.py scripts/semantic_fuzz_introspector.py scripts/semantic_fuzz_introspector_smoke.py
 	$(PYTHON) scripts/intake_semantic_regressions_smoke.py
 	$(PYTHON) scripts/semantic_fuzz_minimizer_smoke.py
+	$(PYTHON) scripts/semantic_adapter_fuzz_smoke.py
+	$(PYTHON) scripts/semantic_fuzz_introspector_smoke.py
 
 research-bip352:
 	$(PYTHON) scripts/bip352_research_scorecard.py --candidates research/bip352_candidates.json --release-readiness build/sp_differ_release_readiness_live.json --json-out build/bip352_impl_research_scorecard.json --markdown-out build/bip352_impl_research_scorecard.md
@@ -783,32 +798,32 @@ $(RELEASE_WORKER_LIB): $(WORKER_SRC) $(CASE_SRC)
 	$(CXX) $(RELEASE_CXXFLAGS) $(SHARED_FLAG) -o $@ $(WORKER_SRC) $(CASE_SRC) $(SECP256K1_CFLAGS) $(SECP256K1_LIBS)
 	-$(RELEASE_STRIP) -S $@ 2>/dev/null || $(RELEASE_STRIP) $@
 
-$(RELEASE_RUNNER_BIN): $(RELEASE_VERSION_STAMP) $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(RELEASE_RUNNER_BIN): $(RELEASE_VERSION_STAMP) $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(RELEASE_BUILD_DIR)
-	$(CXX) $(RELEASE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(CXX) $(RELEASE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 	-$(RELEASE_STRIP) -S $@ 2>/dev/null || $(RELEASE_STRIP) $@
 
-$(RELEASE_COMPARE_BIN): $(RELEASE_VERSION_STAMP) $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(RELEASE_COMPARE_BIN): $(RELEASE_VERSION_STAMP) $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(RELEASE_BUILD_DIR)
-	$(CXX) $(RELEASE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(CXX) $(RELEASE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 	-$(RELEASE_STRIP) -S $@ 2>/dev/null || $(RELEASE_STRIP) $@
 
-$(RELEASE_CLI_BIN): $(RELEASE_VERSION_STAMP) $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(RELEASE_CLI_BIN): $(RELEASE_VERSION_STAMP) $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(RELEASE_BUILD_DIR)
-	$(CXX) $(RELEASE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(CXX) $(RELEASE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(CLI_SRC) $(REPORTER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 	-$(RELEASE_STRIP) -S $@ 2>/dev/null || $(RELEASE_STRIP) $@
 
 $(SANITIZE_WORKER_LIB): $(WORKER_SRC) $(CASE_SRC)
 	@mkdir -p $(SANITIZE_BUILD_DIR)
 	$(SANITIZE_CXX) $(SANITIZE_CXXFLAGS) $(SHARED_FLAG) -o $@ $(WORKER_SRC) $(CASE_SRC) $(SECP256K1_CFLAGS) $(SECP256K1_LIBS)
 
-$(SANITIZE_RUNNER_BIN): $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(SANITIZE_RUNNER_BIN): $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(SANITIZE_BUILD_DIR)
-	$(SANITIZE_CXX) $(SANITIZE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(SANITIZE_CXX) $(SANITIZE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(RUNNER_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 
-$(SANITIZE_COMPARE_BIN): $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
+$(SANITIZE_COMPARE_BIN): $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC)
 	@mkdir -p $(SANITIZE_BUILD_DIR)
-	$(SANITIZE_CXX) $(SANITIZE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
+	$(SANITIZE_CXX) $(SANITIZE_CXXFLAGS) $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS) -o $@ $(COMPARE_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_ENCODING_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(DL_FLAGS) $(THREAD_FLAGS) $(SECP256K1_LIBS) $(OPENSSL_LIBS)
 
 $(SANITIZE_CORE_SMOKE_BIN): $(CORE_SMOKE_SRC) $(CORE_SRC)
 	@mkdir -p $(SANITIZE_BUILD_DIR)

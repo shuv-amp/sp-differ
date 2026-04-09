@@ -117,6 +117,62 @@
         "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
       },
       "source_case_id": "official_case_25_receive_00"
+    },
+    {
+      "adapter_name": "silent-payments",
+      "errors": [
+        "field mismatch: semantic_status",
+        "field mismatch: input_hash",
+        "field mismatch: input_private_key_sum",
+        "field mismatch: sender_shared_secrets",
+        "actual acceptable_output_sets not accepted by expected contract",
+        "actual output_count_options not accepted by expected contract"
+      ],
+      "expectation_mode": "observed_actual",
+      "expectation_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint/expected.json",
+      "id": "official_case_25_send_00__repeated_key_unique_outpoint__silent_payments",
+      "kind": "send",
+      "observed_actual_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint__silent_payments/observed_actual.json",
+      "observed_summary_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint__silent_payments/observed_summary.json",
+      "provenance_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint__silent_payments/provenance.json",
+      "request_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json",
+      "source": {
+        "case_index": 25,
+        "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+        "entry_index": 0,
+        "id": "official_case_25_send_00__repeated_key_unique_outpoint",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_25_send_00"
+    },
+    {
+      "adapter_name": "spdk-rust",
+      "errors": [
+        "field mismatch: semantic_status",
+        "field mismatch: input_hash",
+        "field mismatch: input_private_key_sum",
+        "field mismatch: sender_shared_secrets",
+        "actual acceptable_output_sets not accepted by expected contract",
+        "actual output_count_options not accepted by expected contract"
+      ],
+      "expectation_mode": "observed_actual",
+      "expectation_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint/expected.json",
+      "id": "official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust",
+      "kind": "send",
+      "observed_actual_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust/observed_actual.json",
+      "observed_summary_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust/observed_summary.json",
+      "provenance_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust/provenance.json",
+      "request_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json",
+      "source": {
+        "case_index": 25,
+        "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+        "entry_index": 0,
+        "id": "official_case_25_send_00__repeated_key_unique_outpoint",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_25_send_00"
     }
   ],
   "regression_manifest_version": 1
