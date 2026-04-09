@@ -3,11 +3,13 @@
 """Check repo-owned source comments for deferred-note markers and hype."""
 
 import argparse
+import os
 import re
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ROOT_STR = str(ROOT)
 
 
 DEFAULT_TARGETS = ["src", "workers", "scripts", "adapters", "tests/fixtures"]
@@ -61,8 +63,12 @@ def _resolve_repo_path(raw_target):
     candidate = Path(raw_target)
     if not candidate.is_absolute():
         candidate = ROOT / candidate
-    resolved = candidate.resolve()
-    if not resolved.is_relative_to(ROOT):
+    resolved = Path(os.path.realpath(candidate))
+    try:
+        common = os.path.commonpath([ROOT_STR, str(resolved)])
+    except ValueError as exc:
+        raise ValueError("path escapes repository root: {}".format(raw_target)) from exc
+    if common != ROOT_STR:
         raise ValueError("path escapes repository root: {}".format(raw_target))
     return resolved
 

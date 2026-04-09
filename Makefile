@@ -331,7 +331,19 @@ check-go-vet:
 	cd $(GO_BIP352_MODULE_DIR) && GOFLAGS="$(GO_MODULE_FLAGS)" $(GO) vet ./...
 
 check-clang-tidy:
-	$(PYTHON) scripts/run_clang_tidy.py --clang-tidy "$(CLANG_TIDY)" $(foreach source,$(CLANG_TIDY_SOURCES),--source $(source)) -- $(CLANG_TIDY_CXXFLAGS)
+	@if ! command -v $(CLANG_TIDY) >/dev/null 2>&1; then \
+	  echo "clang-tidy executable not found: $(CLANG_TIDY)" >&2; \
+	  exit 1; \
+	fi
+	@status=0; \
+	for source in $(CLANG_TIDY_SOURCES); do \
+	  echo "$$ $(CLANG_TIDY) $$source -- $(CLANG_TIDY_CXXFLAGS)"; \
+	  $(CLANG_TIDY) "$$source" -- $(CLANG_TIDY_CXXFLAGS) || status=$$?; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+	  echo "clang-tidy failed" >&2; \
+	  exit $$status; \
+	fi
 
 lint: check-compile-warnings check-rustfmt check-rust-clippy check-gofmt check-go-vet check-claims check-comments check-workflows
 
@@ -417,14 +429,13 @@ check-scripts:
 	$(PYTHON) scripts/parse_case.py tests/vectors/example_v2.hex
 	$(PYTHON) scripts/validate_output.py tests/vectors/output_ok.hex
 	$(PYTHON) scripts/runner_smoke.py tests/vectors/example.hex
-	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/check_workflow_hardening.py scripts/workflow_hardening_smoke.py scripts/check_exported_symbols.py scripts/run_clang_tidy.py scripts/clang_tidy_smoke.py scripts/verify_release_attestation.py scripts/release_attestation_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py
+	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/check_workflow_hardening.py scripts/workflow_hardening_smoke.py scripts/check_exported_symbols.py scripts/verify_release_attestation.py scripts/release_attestation_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py
 	$(MAKE) check-claims PYTHON=$(PYTHON)
 	$(MAKE) check-comments PYTHON=$(PYTHON)
 	$(MAKE) check-workflows PYTHON=$(PYTHON)
 	$(PYTHON) scripts/claim_discipline_smoke.py
 	$(PYTHON) scripts/source_comment_discipline_smoke.py
 	$(PYTHON) scripts/workflow_hardening_smoke.py
-	$(PYTHON) scripts/clang_tidy_smoke.py
 	$(PYTHON) scripts/release_attestation_smoke.py
 	bash -n scripts/sign_release.sh
 	$(PYTHON) scripts/release_prereqs_smoke.py
