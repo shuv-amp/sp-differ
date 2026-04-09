@@ -24,6 +24,7 @@ SP-DIFFER is a correctness harness that compares multiple Silent Payments implem
 For a first local validation pass:
 
 ```bash
+make lint
 make build
 make test
 make smoke
@@ -36,6 +37,8 @@ make release
 ./build/release/sp_differ_cli --check-integrity --json-out build/release_check_integrity.json --markdown-out build/release_check_integrity.md
 make package-release
 make verify-packaged-release
+# after downloading a CI-built public archive:
+python3 scripts/verify_release_attestation.py build/sp-differ-v1.0.0-linux-x64.tar.gz --repo shuv-amp/sp-differ --source-ref refs/tags/v1.0.0
 ```
 
 To exercise signet-style address/export handling from a receive case:
@@ -60,6 +63,7 @@ sp-differ status --profile release --require-green
 For a direct pipeline run without the CLI wrapper:
 
 ```bash
+make lint
 make check
 make adapters
 make regressions
@@ -103,9 +107,15 @@ Verified locally with:
 
 Toolchain surfaces exercised by `make test`:
 
-- Python `3.11+`
-- Rust stable toolchain
-- Go `1.24.1` for the Go semantic adapter
+- Python runtime `>=3.9`; the preferred CI and local version file is `.python-version` (`3.11`)
+- Rust `1.92.0`, pinned in `rust-toolchain.toml`
+- Go `1.24.1` for the Go semantic adapter, pinned in `adapters/go_bip352/go.mod`
+
+## Platform Support
+
+- CI-verified today: Linux x86_64, Linux arm64, and macOS via a universal release build.
+- Release packaging today: Linux x64, Linux arm64, and macOS universal tarballs.
+- Windows-specific branches remain in the Makefile for portability work, but Windows is not currently CI-verified or release-supported.
 
 ## Result Interpretation
 

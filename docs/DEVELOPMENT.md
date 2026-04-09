@@ -6,9 +6,10 @@ This guide describes the minimal, deterministic workflow used to validate the wo
 
 - C++17 compiler (Apple clang or GCC)
 - `make`
-- Python 3
-- Rust toolchain for the Rust-backed semantic adapters and workers
+- Python 3.9+ (`.python-version` pins the preferred local and CI version)
+- Rust toolchain pinned in `rust-toolchain.toml`
 - Go 1.24+ for the external `go-bip352` adapter and worker
+- Linux or macOS for a maintainer-grade workflow; Windows is not currently CI-verified or release-supported
 
 ## Quick Start
 
@@ -33,6 +34,10 @@ sp-differ status --profile release --require-green
 
 ## Useful Commands
 
+- Run local formatting helpers for Rust and Go after mechanical edits: `make fmt`
+- Run the static discipline lane (strict compile warnings, Rust fmt, Rust clippy, Go fmt, Go vet, claim checks, comment checks, workflow hardening checks): `make lint`
+- Run the Rust lint lane directly: `make check-rust-clippy`
+- Run the Go lint lane directly: `make check-go-vet`
 - Build the C++ byte-worker library: `make worker`
 - Build the runner: `make runner`
 - Build the Rust byte-worker library: `make worker-rust` (output in `build/`)
@@ -44,14 +49,19 @@ sp-differ status --profile release --require-green
 - Run core smoke tests (I/O, case parser, header validation): `make check`
 - Run the public claim-discipline gate for docs and templates: `make check-claims`
 - Run the source-comment discipline gate for repo-owned code: `make check-comments`
+- Run the workflow-hardening gate for pinned external actions and workflow-level token/concurrency policy: `make check-workflows`
+- Verify that compiled worker libraries still export the documented stable ABI symbols: `make check-abi-symbols`
+- Run the curated `clang-tidy` lane on repo-owned translation units when the tool is installed: `make check-clang-tidy`
 - Run the public CLI smoke test: `make cli-smoke`
 - Write a combined release-readiness report from the current `build/` evidence: `make release-report`
 - Run the public CLI verification profile without the longer fuzz matrix: `make verify-quick`
 - Run the public CLI release profile with the longer fuzz matrix and release report: `make verify-release`
 - Run the stricter networked release sign-off that refreshes upstream probe evidence first: `make verify-release-live`
+- Verify a published CI-built release archive against GitHub artifact attestations: `make verify-release-attestation`
 - Run the full maturity lane when you want the closest thing to release-grade local evidence in one command: `make maturity-signoff`
 - Re-check the current release-evidence manifest against on-disk files: `make verify-release-evidence`
 - Before any public release, read `./RELEASE.md` and make sure the evidence manifest and signed-tag requirements are satisfied.
+- Run the strict C++ warning lane before touching compiled surfaces: `make check-compile-warnings`
 - Run the sanitizer-backed C++ smoke lane locally before touching runner/compare/core code: `make sanitize-smoke SANITIZE_CXX=clang++`
 - Run the pinned upstream BIP352 semantic oracle offline: `make oracle`
 - Run the full derived v2 semantic corpus against the vendored oracle: `make vectors-v2`
@@ -83,6 +93,9 @@ sp-differ status --profile release --require-green
 - `make check` also exercises the Python helper scripts against the canonical v1 and v2 example payloads.
 - `make check` now also includes the public claim-discipline gate, so unsupported hype and unsupported future-tense release wording fail locally before review.
 - `make check` now also includes the source-comment discipline gate, so repo-owned comments do not accumulate deferred-note markers, hype, or vague certainty wording.
+- `make lint` now also verifies that GitHub Actions workflows keep top-level concurrency controls, least-privilege token permissions, and SHA-pinned external actions.
+- `make check-clang-tidy` is intentionally separate from `make lint` because some local environments do not ship `clang-tidy`, but CI does enforce it.
+- Make-driven Rust build and test commands use `cargo --locked`, and Make-driven Go adapter commands use `-mod=readonly`, so dependency drift shows up as a build failure instead of a silent rewrite.
 - `make check` now also exercises the public CLI report aggregator against a synthetic build tree.
 - `make oracle` verifies the vendored upstream reference bundle checksums and runs the exact upstream BIP352 reference implementation against the pinned official snapshot.
 - `make vectors-v2` verifies that the full official send/receive surface projects into case format v2 and that the v2 oracle runner matches the normalized semantic expectations.

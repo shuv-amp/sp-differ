@@ -5,6 +5,8 @@ CXXFLAGS ?= -std=c++17 -O2 -fPIC
 PYTHON ?= python3
 GO ?= go
 CARGO ?= $(shell command -v cargo 2>/dev/null || echo $(HOME)/.cargo/bin/cargo)
+CARGO_LOCKED_ARGS ?= --locked
+GO_MODULE_FLAGS ?= -mod=readonly
 SP_DIFFER_BUILD_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo 0.0.0-dev)
 BUILD_DEFINES := -DSP_DIFFER_BUILD_VERSION=\"$(SP_DIFFER_BUILD_VERSION)\"
 LOCAL_RELEASE_OS = $(shell printf '%s' '$(UNAME_S)' | tr '[:upper:]' '[:lower:]')
@@ -44,6 +46,8 @@ COMPARE_SRC := src/runner/sp_differ_compare.cpp
 CLI_SRC := src/cli/main.cpp
 WORKER_API_SRC := src/runner/worker.cpp
 SEMANTIC_BRIDGE_SRC := src/runner/semantic_bridge.cpp
+SEMANTIC_JSON_SRC := src/runner/semantic_json.cpp
+SEMANTIC_CONTRACT_SRC := src/runner/semantic_contract.cpp
 REPORTER_SRC := src/reporter/reporter.cpp
 CORE_SRC := src/core/io.cpp
 SEMANTIC_JSON_SRC := src/runner/semantic_json.cpp
@@ -169,6 +173,11 @@ BENCH_SCAN_VERSION ?= 0
 SANITIZE_BUILD_DIR := $(BUILD_DIR)/sanitize
 SANITIZE_CXX ?= $(CXX)
 SANITIZE_CXXFLAGS ?= -std=c++17 -O1 -g -fPIC -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all
+WARN_BUILD_DIR ?= $(BUILD_DIR)/warnings
+WARN_CXXFLAGS ?= $(CXXFLAGS) -Wall -Wextra -Wpedantic -Werror
+CLANG_TIDY ?= clang-tidy
+CLANG_TIDY_SOURCES := $(RUNNER_SRC) $(COMPARE_SRC) $(CLI_SRC) $(WORKER_API_SRC) $(SEMANTIC_BRIDGE_SRC) $(SEMANTIC_JSON_SRC) $(SEMANTIC_CONTRACT_SRC) $(REPORTER_SRC) $(CORE_SRC) $(CASE_SRC) $(VALIDATE_SRC) $(WORKER_SRC)
+CLANG_TIDY_CXXFLAGS := -std=c++17 $(BUILD_DEFINES) $(THREAD_FLAGS) $(SECP256K1_CFLAGS) $(OPENSSL_CFLAGS)
 UBSAN_OPTIONS ?= print_stacktrace=1:halt_on_error=1
 ifeq ($(UNAME_S),Darwin)
 ASAN_OPTIONS ?= abort_on_error=1
@@ -176,6 +185,8 @@ else
 ASAN_OPTIONS ?= detect_leaks=1:abort_on_error=1
 endif
 SANITIZE_RUN_ENV := ASAN_OPTIONS=$(ASAN_OPTIONS) UBSAN_OPTIONS=$(UBSAN_OPTIONS)
+RUSTFMT_MANIFESTS := workers/rust/Cargo.toml adapters/spdk_rust/Cargo.toml adapters/silent_payments_rust/Cargo.toml adapters/bip352_rust/Cargo.toml adapters/bdk_sp_rust/Cargo.toml
+GOFMT_SOURCES := $(shell find adapters/go_bip352 -type f -name '*.go' | sort)
 
 SANITIZE_WORKER_LIB := $(SANITIZE_BUILD_DIR)/libsp_differ_worker.$(LIB_EXT)
 SANITIZE_RUNNER_BIN := $(SANITIZE_BUILD_DIR)/sp_differ_runner
@@ -201,7 +212,8 @@ ifneq ($(strip $(RELEASE_SIGN_GPG_KEY)),)
 VERIFY_PACKAGED_SIGNATURE_ARG := --require-signature
 endif
 
-.PHONY: build test worker runner compare cli smoke sanitize-smoke check clean release
+.PHONY: build test worker runner compare cli smoke sanitize-smoke check clean release lint
+.PHONY: check-compile-warnings check-rustfmt check-rust-clippy check-gofmt check-go-vet check-clang-tidy check-abi-symbols fmt fmt-rust fmt-go
 .PHONY: worker-rust
 .PHONY: smoke-rust
 .PHONY: diff
@@ -209,6 +221,7 @@ endif
 .PHONY: check-scripts
 .PHONY: check-claims
 .PHONY: check-comments
+.PHONY: check-workflows
 .PHONY: oracle
 .PHONY: vectors
 .PHONY: vectors-check
@@ -249,6 +262,7 @@ endif
 .PHONY: fuzz-semantic-bdk-sp
 .PHONY: fuzz-semantic-workers
 .PHONY: fuzz-semantic-adapters
+.PHONY: semantic-worker-libs
 .PHONY: bench-reference
 .PHONY: bench-spdk
 .PHONY: bench-spdk-ffi
@@ -278,6 +292,7 @@ endif
 .PHONY: maturity-signoff
 .PHONY: verify-release
 .PHONY: verify-release-live
+.PHONY: verify-release-attestation
 .PHONY: verify-quick
 .PHONY: FORCE
 
@@ -286,6 +301,51 @@ worker: $(WORKER_LIB)
 build: worker runner compare cli
 
 FORCE:
+
+check-compile-warnings:
+	$(MAKE) BUILD_DIR=$(WARN_BUILD_DIR) CXXFLAGS="$(WARN_CXXFLAGS)" build
+
+check-rustfmt:
+	$(CARGO) fmt --manifest-path workers/rust/Cargo.toml --all --check
+	$(CARGO) fmt --manifest-path adapters/spdk_rust/Cargo.toml --all --check
+	$(CARGO) fmt --manifest-path adapters/silent_payments_rust/Cargo.toml --all --check
+	$(CARGO) fmt --manifest-path adapters/bip352_rust/Cargo.toml --all --check
+	$(CARGO) fmt --manifest-path adapters/bdk_sp_rust/Cargo.toml --all --check
+
+check-rust-clippy:
+	$(CARGO) clippy --manifest-path workers/rust/Cargo.toml $(CARGO_LOCKED_ARGS) --all-targets -- -D warnings
+	$(CARGO) clippy --manifest-path adapters/spdk_rust/Cargo.toml $(CARGO_LOCKED_ARGS) --all-targets -- -D warnings
+	$(CARGO) clippy --manifest-path adapters/silent_payments_rust/Cargo.toml $(CARGO_LOCKED_ARGS) --all-targets -- -D warnings
+	$(CARGO) clippy --manifest-path adapters/bip352_rust/Cargo.toml $(CARGO_LOCKED_ARGS) --all-targets -- -D warnings
+	$(CARGO) clippy --manifest-path adapters/bdk_sp_rust/Cargo.toml $(CARGO_LOCKED_ARGS) --all-targets -- -D warnings
+
+check-gofmt:
+	@files="$$(gofmt -l $(GOFMT_SOURCES))"; \
+	if [ -n "$$files" ]; then \
+	  echo "gofmt required for:"; \
+	  printf '%s\n' "$$files"; \
+	  exit 1; \
+	fi
+
+check-go-vet:
+	cd $(GO_BIP352_MODULE_DIR) && GOFLAGS="$(GO_MODULE_FLAGS)" $(GO) vet ./...
+
+check-clang-tidy:
+	$(PYTHON) scripts/run_clang_tidy.py --clang-tidy "$(CLANG_TIDY)" $(foreach source,$(CLANG_TIDY_SOURCES),--source $(source)) -- $(CLANG_TIDY_CXXFLAGS)
+
+lint: check-compile-warnings check-rustfmt check-rust-clippy check-gofmt check-go-vet check-claims check-comments check-workflows
+
+fmt: fmt-rust fmt-go
+
+fmt-rust:
+	$(CARGO) fmt --manifest-path workers/rust/Cargo.toml --all
+	$(CARGO) fmt --manifest-path adapters/spdk_rust/Cargo.toml --all
+	$(CARGO) fmt --manifest-path adapters/silent_payments_rust/Cargo.toml --all
+	$(CARGO) fmt --manifest-path adapters/bip352_rust/Cargo.toml --all
+	$(CARGO) fmt --manifest-path adapters/bdk_sp_rust/Cargo.toml --all
+
+fmt-go:
+	gofmt -w $(GOFMT_SOURCES)
 
 $(BUILD_VERSION_STAMP): FORCE
 	@mkdir -p $(BUILD_DIR)
@@ -329,9 +389,10 @@ test: build
 	$(MAKE) check
 	$(MAKE) -C workers/cpp clean test_taproot_negation
 	./workers/cpp/test_taproot_negation
-	$(CARGO) test --manifest-path workers/rust/Cargo.toml
+	$(CARGO) test $(CARGO_LOCKED_ARGS) --manifest-path workers/rust/Cargo.toml
 	$(MAKE) vectors-check
 	$(MAKE) adapters
+	$(MAKE) check-abi-symbols
 	$(MAKE) regressions
 
 check-claims:
@@ -340,16 +401,31 @@ check-claims:
 check-comments:
 	$(PYTHON) scripts/check_source_comment_discipline.py
 
+check-workflows:
+	$(PYTHON) scripts/check_workflow_hardening.py
+
+check-abi-symbols: worker worker-rust semantic-worker-libs
+	$(PYTHON) scripts/check_exported_symbols.py --library "$(WORKER_LIB)" --symbol sp_differ_worker_api_version --symbol sp_differ_worker_run --symbol sp_differ_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --library "$(RUST_LIB_DST)" --symbol sp_differ_worker_api_version --symbol sp_differ_worker_run --symbol sp_differ_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --library "$(SPDK_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --library "$(SILENT_PAYMENTS_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --library "$(BIP352_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --library "$(GO_BIP352_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+
 check-scripts:
 	$(PYTHON) scripts/parse_case.py tests/vectors/example.hex
 	$(PYTHON) scripts/parse_case.py tests/vectors/example_v2.hex
 	$(PYTHON) scripts/validate_output.py tests/vectors/output_ok.hex
 	$(PYTHON) scripts/runner_smoke.py tests/vectors/example.hex
-	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py
+	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/check_workflow_hardening.py scripts/workflow_hardening_smoke.py scripts/check_exported_symbols.py scripts/run_clang_tidy.py scripts/clang_tidy_smoke.py scripts/verify_release_attestation.py scripts/release_attestation_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py
 	$(MAKE) check-claims PYTHON=$(PYTHON)
 	$(MAKE) check-comments PYTHON=$(PYTHON)
+	$(MAKE) check-workflows PYTHON=$(PYTHON)
 	$(PYTHON) scripts/claim_discipline_smoke.py
 	$(PYTHON) scripts/source_comment_discipline_smoke.py
+	$(PYTHON) scripts/workflow_hardening_smoke.py
+	$(PYTHON) scripts/clang_tidy_smoke.py
+	$(PYTHON) scripts/release_attestation_smoke.py
 	bash -n scripts/sign_release.sh
 	$(PYTHON) scripts/release_prereqs_smoke.py
 	$(PYTHON) scripts/verify_packaged_release_smoke.py
@@ -374,43 +450,43 @@ adapter-reference: vectors-v2
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name reference --adapter-cmd "$(PYTHON) adapters/reference/semantic_adapter.py" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/reference_semantic_adapter_report.json --markdown-out build/reference_semantic_adapter_report.md --artifact-dir build/reference_semantic_adapter_artifacts
 
 adapter-spdk: vectors-v2
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name spdk-rust --adapter-cmd "./$(SPDK_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/spdk_semantic_adapter_report.json --markdown-out build/spdk_semantic_adapter_report.md --artifact-dir build/spdk_semantic_adapter_artifacts
 
 adapter-spdk-ffi: vectors-v2
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name spdk-rust-ffi --worker-lib "$(SPDK_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/spdk_semantic_worker_report.json --markdown-out build/spdk_semantic_worker_report.md --artifact-dir build/spdk_semantic_worker_artifacts
 
 adapter-silent-payments: vectors-v2
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name silent-payments --adapter-cmd "./$(SILENT_PAYMENTS_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/silent_payments_semantic_adapter_report.json --markdown-out build/silent_payments_semantic_adapter_report.md --artifact-dir build/silent_payments_semantic_adapter_artifacts
 
 adapter-silent-payments-ffi: vectors-v2
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name silent-payments-ffi --worker-lib "$(SILENT_PAYMENTS_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/silent_payments_semantic_worker_report.json --markdown-out build/silent_payments_semantic_worker_report.md --artifact-dir build/silent_payments_semantic_worker_artifacts
 
 adapter-bip352: vectors-v2
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name bip352 --adapter-cmd "./$(BIP352_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/bip352_semantic_adapter_report.json --markdown-out build/bip352_semantic_adapter_report.md --artifact-dir build/bip352_semantic_adapter_artifacts
 
 adapter-bip352-ffi: vectors-v2
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name bip352-ffi --worker-lib "$(BIP352_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/bip352_semantic_worker_report.json --markdown-out build/bip352_semantic_worker_report.md --artifact-dir build/bip352_semantic_worker_artifacts
 
 adapter-go-bip352: vectors-v2
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name go-bip352 --adapter-cmd "./$(GO_BIP352_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/go_bip352_semantic_adapter_report.json --markdown-out build/go_bip352_semantic_adapter_report.md --artifact-dir build/go_bip352_semantic_adapter_artifacts
 
 adapter-go-bip352-ffi: vectors-v2
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name go-bip352-ffi --worker-lib "$(GO_BIP352_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/go_bip352_semantic_worker_report.json --markdown-out build/go_bip352_semantic_worker_report.md --artifact-dir build/go_bip352_semantic_worker_artifacts
 
 adapter-bdk-sp: vectors-v2
-	$(CARGO) build --manifest-path adapters/bdk_sp_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/bdk_sp_semantic_adapter_report.json --markdown-out build/bdk_sp_semantic_adapter_report.md --artifact-dir build/bdk_sp_semantic_adapter_artifacts
 
 adapters: adapter-reference adapter-spdk adapter-spdk-ffi adapter-silent-payments adapter-silent-payments-ffi adapter-bip352 adapter-bip352-ffi adapter-go-bip352 adapter-go-bip352-ffi adapter-bdk-sp
@@ -419,43 +495,43 @@ bench-reference: vectors-v2
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name reference --adapter-cmd "$(PYTHON) adapters/reference/semantic_adapter.py" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/reference_semantic_benchmark.json --markdown-out build/reference_semantic_benchmark.md
 
 bench-spdk: vectors-v2
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name spdk-rust --adapter-cmd "./$(SPDK_ADAPTER_BIN)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/spdk_semantic_benchmark.json --markdown-out build/spdk_semantic_benchmark.md
 
 bench-spdk-ffi: vectors-v2
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name spdk-rust-ffi --worker-lib "$(SPDK_SEMANTIC_LIB)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/spdk_semantic_worker_benchmark.json --markdown-out build/spdk_semantic_worker_benchmark.md
 
 bench-silent-payments: vectors-v2
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name silent-payments --adapter-cmd "./$(SILENT_PAYMENTS_ADAPTER_BIN)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/silent_payments_semantic_benchmark.json --markdown-out build/silent_payments_semantic_benchmark.md
 
 bench-silent-payments-ffi: vectors-v2
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name silent-payments-ffi --worker-lib "$(SILENT_PAYMENTS_SEMANTIC_LIB)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/silent_payments_semantic_worker_benchmark.json --markdown-out build/silent_payments_semantic_worker_benchmark.md
 
 bench-bip352: vectors-v2
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name bip352 --adapter-cmd "./$(BIP352_ADAPTER_BIN)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/bip352_semantic_benchmark.json --markdown-out build/bip352_semantic_benchmark.md
 
 bench-bip352-ffi: vectors-v2
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name bip352-ffi --worker-lib "$(BIP352_SEMANTIC_LIB)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/bip352_semantic_worker_benchmark.json --markdown-out build/bip352_semantic_worker_benchmark.md
 
 bench-go-bip352: vectors-v2
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name go-bip352 --adapter-cmd "./$(GO_BIP352_ADAPTER_BIN)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/go_bip352_semantic_benchmark.json --markdown-out build/go_bip352_semantic_benchmark.md
 
 bench-go-bip352-ffi: vectors-v2
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name go-bip352-ffi --worker-lib "$(GO_BIP352_SEMANTIC_LIB)" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/go_bip352_semantic_worker_benchmark.json --markdown-out build/go_bip352_semantic_worker_benchmark.md
 
 bench-bdk-sp: vectors-v2
-	$(CARGO) build --manifest-path adapters/bdk_sp_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/bdk_sp_semantic_benchmark.json --markdown-out build/bdk_sp_semantic_benchmark.md
 
 bench-summary:
@@ -470,43 +546,43 @@ regressions-reference:
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name reference --adapter-cmd "$(PYTHON) adapters/reference/semantic_adapter.py" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-spdk:
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name spdk-rust --adapter-cmd "./$(SPDK_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-spdk-ffi:
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name spdk-rust-ffi --worker-lib "$(SPDK_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-silent-payments:
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name silent-payments --adapter-cmd "./$(SILENT_PAYMENTS_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-silent-payments-ffi:
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name silent-payments-ffi --worker-lib "$(SILENT_PAYMENTS_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-bip352:
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name bip352 --adapter-cmd "./$(BIP352_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-bip352-ffi:
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name bip352-ffi --worker-lib "$(BIP352_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-go-bip352:
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name go-bip352 --adapter-cmd "./$(GO_BIP352_ADAPTER_BIN)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-go-bip352-ffi:
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name go-bip352-ffi --worker-lib "$(GO_BIP352_SEMANTIC_LIB)" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions-bdk-sp:
-	$(CARGO) build --manifest-path adapters/bdk_sp_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions: regressions-reference regressions-spdk regressions-spdk-ffi regressions-silent-payments regressions-silent-payments-ffi regressions-bip352 regressions-bip352-ffi regressions-go-bip352 regressions-go-bip352-ffi regressions-bdk-sp
@@ -535,46 +611,46 @@ fuzz-minimizer-smoke:
 	$(PYTHON) scripts/semantic_fuzz_minimizer_smoke.py
 
 fuzz-semantic-spdk: fuzz-corpus
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_worker_fuzz.py --worker-lib "$(SPDK_SEMANTIC_LIB)" --seed $(FUZZ_SEED) --structured-iterations $(FUZZ_STRUCTURED_ITERATIONS) --raw-iterations $(FUZZ_RAW_ITERATIONS) --json-out build/spdk_semantic_fuzz_report.json --markdown-out build/spdk_semantic_fuzz_report.md --artifact-dir build/spdk_semantic_fuzz_artifacts
 
 fuzz-semantic-silent-payments: fuzz-corpus
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_worker_fuzz.py --worker-lib "$(SILENT_PAYMENTS_SEMANTIC_LIB)" --seed $(FUZZ_SEED) --structured-iterations $(FUZZ_STRUCTURED_ITERATIONS) --raw-iterations $(FUZZ_RAW_ITERATIONS) --json-out build/silent_payments_semantic_fuzz_report.json --markdown-out build/silent_payments_semantic_fuzz_report.md --artifact-dir build/silent_payments_semantic_fuzz_artifacts
 
 fuzz-semantic-bip352: fuzz-corpus
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_worker_fuzz.py --worker-lib "$(BIP352_SEMANTIC_LIB)" --seed $(FUZZ_SEED) --structured-iterations $(FUZZ_STRUCTURED_ITERATIONS) --raw-iterations $(FUZZ_RAW_ITERATIONS) --json-out build/bip352_semantic_fuzz_report.json --markdown-out build/bip352_semantic_fuzz_report.md --artifact-dir build/bip352_semantic_fuzz_artifacts
 
 fuzz-semantic-go-bip352: fuzz-corpus
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
 	$(PYTHON) scripts/run_semantic_worker_fuzz.py --worker-lib "$(GO_BIP352_SEMANTIC_LIB)" --seed $(FUZZ_SEED) --structured-iterations $(FUZZ_STRUCTURED_ITERATIONS) --raw-iterations $(FUZZ_RAW_ITERATIONS) --json-out build/go_bip352_semantic_fuzz_report.json --markdown-out build/go_bip352_semantic_fuzz_report.md --artifact-dir build/go_bip352_semantic_fuzz_artifacts
 
 fuzz-semantic-reference: fuzz-corpus
 	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name reference --adapter-cmd "$(PYTHON) adapters/reference/semantic_adapter.py" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/reference_semantic_adapter_fuzz_report.json --markdown-out build/reference_semantic_adapter_fuzz_report.md --artifact-dir build/reference_semantic_adapter_fuzz_artifacts
 
 fuzz-semantic-spdk-adapter: fuzz-corpus
-	$(CARGO) build --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name spdk-rust --adapter-cmd "./$(SPDK_ADAPTER_BIN)" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/spdk_semantic_adapter_fuzz_report.json --markdown-out build/spdk_semantic_adapter_fuzz_report.md --artifact-dir build/spdk_semantic_adapter_fuzz_artifacts
 
 fuzz-semantic-silent-payments-adapter: fuzz-corpus
-	$(CARGO) build --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name silent-payments --adapter-cmd "./$(SILENT_PAYMENTS_ADAPTER_BIN)" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/silent_payments_semantic_adapter_fuzz_report.json --markdown-out build/silent_payments_semantic_adapter_fuzz_report.md --artifact-dir build/silent_payments_semantic_adapter_fuzz_artifacts
 
 fuzz-semantic-bip352-adapter: fuzz-corpus
-	$(CARGO) build --manifest-path adapters/bip352_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name bip352 --adapter-cmd "./$(BIP352_ADAPTER_BIN)" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/bip352_semantic_adapter_fuzz_report.json --markdown-out build/bip352_semantic_adapter_fuzz_report.md --artifact-dir build/bip352_semantic_adapter_fuzz_artifacts
 
 fuzz-semantic-go-bip352-adapter: fuzz-corpus
 	@mkdir -p $(BUILD_DIR)
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) test ./...
-	cd $(GO_BIP352_MODULE_DIR) && $(GO) build -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) test $(GO_MODULE_FLAGS) ./...
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -o ../../$(GO_BIP352_ADAPTER_BIN) ./cmd/adapter
 	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name go-bip352 --adapter-cmd "./$(GO_BIP352_ADAPTER_BIN)" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/go_bip352_semantic_adapter_fuzz_report.json --markdown-out build/go_bip352_semantic_adapter_fuzz_report.md --artifact-dir build/go_bip352_semantic_adapter_fuzz_artifacts
 
 fuzz-semantic-bdk-sp: fuzz-corpus
-	$(CARGO) build --manifest-path adapters/bdk_sp_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/bdk_sp_semantic_adapter_fuzz_report.json --markdown-out build/bdk_sp_semantic_adapter_fuzz_report.md --artifact-dir build/bdk_sp_semantic_adapter_fuzz_artifacts
 
 fuzz-semantic-workers: fuzz-semantic-spdk fuzz-semantic-silent-payments fuzz-semantic-bip352 fuzz-semantic-go-bip352
@@ -659,6 +735,9 @@ verify-release:
 
 verify-release-live:
 	$(PYTHON) sp_differ_cli.py verify --profile release --python $(PYTHON) --refresh-external-probe --json-out build/sp_differ_release_readiness_live.json --markdown-out build/sp_differ_release_readiness_live.md
+
+verify-release-attestation:
+	$(PYTHON) scripts/verify_release_attestation.py $(RELEASE_ARCHIVE) $(if $(strip $(RELEASE_ATTESTATION_REPO)),--repo $(RELEASE_ATTESTATION_REPO),) $(if $(strip $(RELEASE_ATTESTATION_SOURCE_REF)),--source-ref $(RELEASE_ATTESTATION_SOURCE_REF),)
 
 vectors-check: runner worker worker-rust vectors-v2
 	$(PYTHON) scripts/audit_bip352_vectors.py tests/vectors/bip352/official/send_and_receive_test_vectors.json --json-out build/bip352_vector_audit.json
@@ -822,8 +901,14 @@ diff: compare worker-rust check parity-smoke
 semantic-smoke: runner compare
 	$(PYTHON) scripts/semantic_runner_smoke.py
 
+semantic-worker-libs:
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/spdk_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/silent_payments_rust/Cargo.toml
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bip352_rust/Cargo.toml
+	cd $(GO_BIP352_MODULE_DIR) && $(GO) build $(GO_MODULE_FLAGS) -buildmode=c-shared -o ../../$(GO_BIP352_SEMANTIC_LIB) ./cmd/worker
+
 worker-rust:
-	$(CARGO) build --manifest-path workers/rust/Cargo.toml --release
+	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path workers/rust/Cargo.toml --release
 	@mkdir -p $(BUILD_DIR)
 	cp $(RUST_LIB_SRC) $(RUST_LIB_DST)
 

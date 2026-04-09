@@ -1,6 +1,6 @@
+use bech32::{Bech32m, ByteIterExt, Fe32, Fe32IterExt, Hrp};
 use bip352::input_public_key;
 use bip352::{ScanSecretKey, SharedSecret, SpendPublicKey};
-use bech32::{Bech32m, ByteIterExt, Fe32, Fe32IterExt, Hrp};
 use bitcoin::hashes::{sha256, Hash, HashEngine};
 use bitcoin::secp256k1::{Parity, PublicKey, Scalar, Secp256k1, SecretKey, XOnlyPublicKey};
 use bitcoin::{Amount, OutPoint, ScriptBuf, Sequence, TxIn, TxOut, Txid, Witness};
@@ -240,8 +240,7 @@ fn derive_send_semantics(request: &AdapterRequest) -> Result<Value> {
 
     let a_sum_pubkey = a_sum.public_key(&secp);
     let input_hash_bytes = calculate_input_hash(&request.inputs, &a_sum_pubkey)?;
-    let input_hash_scalar =
-        Scalar::from_be_bytes(input_hash_bytes).map_err(|e| e.to_string())?;
+    let input_hash_scalar = Scalar::from_be_bytes(input_hash_bytes).map_err(|e| e.to_string())?;
     if scan_group_recipient_limit_exceeded(
         request
             .recipient_groups
@@ -295,10 +294,9 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
         .receiver_keys
         .as_ref()
         .ok_or_else(|| "missing receiver_keys".to_owned())?;
-    let b_scan = SecretKey::from_slice(
-        &hex_decode(&receiver_keys.scan_privkey).map_err(|e| e.to_string())?,
-    )
-    .map_err(|e| e.to_string())?;
+    let b_scan =
+        SecretKey::from_slice(&hex_decode(&receiver_keys.scan_privkey).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
     let b_spend = SecretKey::from_slice(
         &hex_decode(&receiver_keys.spend_privkey).map_err(|e| e.to_string())?,
     )
@@ -307,8 +305,12 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
     let spend_pubkey = b_spend.public_key(&secp);
     let spend_pubkey_wrapped = SpendPublicKey::new(spend_pubkey);
     let labels = request.labels.clone().unwrap_or_default();
-    let receiving_addresses =
-        build_receiving_addresses(&scan_secret, spend_pubkey_wrapped, &labels, request.network.as_str())?;
+    let receiving_addresses = build_receiving_addresses(
+        &scan_secret,
+        spend_pubkey_wrapped,
+        &labels,
+        request.network.as_str(),
+    )?;
 
     if eligible.is_empty() {
         return Ok(json!({
@@ -330,7 +332,10 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
         }));
     }
 
-    let eligible_pubkeys = eligible.iter().map(|entry| entry.public_key).collect::<Vec<_>>();
+    let eligible_pubkeys = eligible
+        .iter()
+        .map(|entry| entry.public_key)
+        .collect::<Vec<_>>();
     let eligible_refs = eligible_pubkeys.iter().collect::<Vec<_>>();
     let a_sum = PublicKey::combine_keys(&eligible_refs).map_err(|_| "point_at_infinity".to_owned());
     let a_sum = match a_sum {
@@ -357,21 +362,22 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
     };
 
     let input_hash_bytes = calculate_input_hash(&request.inputs, &a_sum)?;
-    let input_hash_scalar =
-        Scalar::from_be_bytes(input_hash_bytes).map_err(|e| e.to_string())?;
+    let input_hash_scalar = Scalar::from_be_bytes(input_hash_bytes).map_err(|e| e.to_string())?;
     let tweak = a_sum
         .mul_tweak(&secp, &input_hash_scalar)
         .map_err(|e| format!("failed to derive tweak point: {}", e))?;
     let shared_secret = SharedSecret::new(input_hash_scalar, a_sum, b_scan, &secp)
         .map_err(|e| format!("failed to derive receive shared secret: {}", e))?;
     let shared_secret_hex = hex_encode(
-        a_sum.mul_tweak(&secp, &Scalar::from(b_scan))
+        a_sum
+            .mul_tweak(&secp, &Scalar::from(b_scan))
             .map_err(|e| format!("failed to derive receive shared secret: {}", e))?
             .mul_tweak(&secp, &input_hash_scalar)
             .map_err(|e| format!("failed to derive receive shared secret: {}", e))?
             .serialize(),
     );
-    let label_spend_keys = build_label_spend_keys(&scan_secret, spend_pubkey_wrapped, &labels, &secp)?;
+    let label_spend_keys =
+        build_label_spend_keys(&scan_secret, spend_pubkey_wrapped, &labels, &secp)?;
     let detailed_outputs_required = request
         .expectation_hints
         .as_ref()
@@ -417,9 +423,8 @@ fn collect_send_inputs(request: &AdapterRequest) -> Result<Vec<EligibleSendInput
             .privkey
             .as_ref()
             .ok_or_else(|| "eligible sender input is missing privkey".to_owned())?;
-        let privkey =
-            SecretKey::from_slice(&hex_decode(privkey_hex).map_err(|e| e.to_string())?)
-                .map_err(|e| e.to_string())?;
+        let privkey = SecretKey::from_slice(&hex_decode(privkey_hex).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
         eligible.push(EligibleSendInput {
             public_key,
             privkey,
@@ -492,14 +497,12 @@ fn build_scan_groups(groups: &[RecipientGroupRequest]) -> Result<Vec<ScanGroup>>
     let mut ordered = Vec::new();
     let mut index_by_scan = HashMap::new();
     for group in groups {
-        let scan_pubkey = PublicKey::from_slice(
-            &hex_decode(&group.scan_pubkey).map_err(|e| e.to_string())?,
-        )
-        .map_err(|e| format!("failed to decode scan pubkey: {}", e))?;
-        let spend_pubkey = PublicKey::from_slice(
-            &hex_decode(&group.spend_pubkey).map_err(|e| e.to_string())?,
-        )
-        .map_err(|e| format!("failed to decode spend pubkey: {}", e))?;
+        let scan_pubkey =
+            PublicKey::from_slice(&hex_decode(&group.scan_pubkey).map_err(|e| e.to_string())?)
+                .map_err(|e| format!("failed to decode scan pubkey: {}", e))?;
+        let spend_pubkey =
+            PublicKey::from_slice(&hex_decode(&group.spend_pubkey).map_err(|e| e.to_string())?)
+                .map_err(|e| format!("failed to decode spend pubkey: {}", e))?;
         let index = match index_by_scan.get(&group.scan_pubkey) {
             Some(existing) => *existing,
             None => {
@@ -532,7 +535,10 @@ fn scan_group_recipient_limit_exceeded(groups: &[RecipientGroupRequest]) -> bool
     false
 }
 
-fn calculate_input_hash(inputs: &[InputRequest], sum_input_pubkeys: &PublicKey) -> Result<[u8; 32]> {
+fn calculate_input_hash(
+    inputs: &[InputRequest],
+    sum_input_pubkeys: &PublicKey,
+) -> Result<[u8; 32]> {
     if inputs.is_empty() {
         return Err("no outpoints provided".to_owned());
     }
@@ -570,8 +576,11 @@ fn derive_sender_outputs(
         let shared_secret = SharedSecret::new(input_hash, group.scan_pubkey, *a_sum, secp)
             .map_err(|e| format!("failed to derive sender shared secret: {}", e))?;
         for (index, spend_pubkey) in group.spend_pubkeys.iter().enumerate() {
-            let (output, _) =
-                shared_secret.destination_public_key(SpendPublicKey::new(*spend_pubkey), index as u32, secp);
+            let (output, _) = shared_secret.destination_public_key(
+                SpendPublicKey::new(*spend_pubkey),
+                index as u32,
+                secp,
+            );
             output_set.insert(hex_encode(output.x_only_public_key().0.serialize()));
         }
     }
@@ -672,7 +681,8 @@ fn scan_outputs(
     let mut remaining = HashSet::new();
     for output in outputs_to_scan {
         let bytes = hex_decode(output).map_err(|e| e.to_string())?;
-        let pubkey = XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
+        let pubkey =
+            XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
         remaining.insert(hex_encode(pubkey.serialize()));
     }
     let mut found_outputs = Vec::new();
@@ -794,7 +804,11 @@ fn tagged_hash(tag: &str, message: &[u8]) -> [u8; 32] {
     sha256::Hash::from_engine(engine).to_byte_array()
 }
 
-fn encode_silent_payment_address(scan_pubkey: PublicKey, spend_pubkey: PublicKey, testing: bool) -> String {
+fn encode_silent_payment_address(
+    scan_pubkey: PublicKey,
+    spend_pubkey: PublicKey,
+    testing: bool,
+) -> String {
     let hrp = if testing {
         Hrp::parse_unchecked("tsp")
     } else {

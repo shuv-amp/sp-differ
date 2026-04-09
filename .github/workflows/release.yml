@@ -19,6 +19,7 @@ defaults:
 
 env:
   RELEASE_VERSION: ${{ github.ref_name }}
+  PYTHON_VERSION_FILE: ".python-version"
   RELEASE_SIGNING_ENABLED: ${{ secrets.RELEASE_GPG_PRIVATE_KEY != '' && secrets.RELEASE_GPG_KEY_ID != '' && secrets.RELEASE_GPG_PASSPHRASE != '' }}
 
 jobs:
@@ -28,12 +29,12 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          python-version: "3.11"
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
 
       - name: Install native dependencies
         run: |
@@ -50,6 +51,10 @@ jobs:
     needs: gatekeeper
     runs-on: ${{ matrix.runs-on }}
     timeout-minutes: 60
+    permissions:
+      contents: read
+      attestations: write
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -62,7 +67,7 @@ jobs:
             worker_lib: libsp_differ_worker.so
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install native dependencies
         run: |
@@ -131,11 +136,37 @@ jobs:
             --json-out "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-verification.json" \
             --markdown-out "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-verification.md"
 
+      - name: Attest packaged archive
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4
+        with:
+          subject-path: build/sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}.tar.gz
+
       - name: Upload release archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}
           path: build/sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Stage release bundle
+        run: |
+          bundle="build/release-bundles/${{ matrix.target }}"
+          dist="build/dist/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}"
+          mkdir -p "$bundle"
+          cp "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}.tar.gz" "$bundle/"
+          cp "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-verification.json" "$bundle/"
+          cp "build/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-verification.md" "$bundle/"
+          cp "$dist/SHA256SUMS" "$bundle/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-SHA256SUMS"
+          if [ -f "$dist/SHA256SUMS.asc" ]; then
+            cp "$dist/SHA256SUMS.asc" "$bundle/sp-differ-${RELEASE_VERSION}-${{ matrix.target }}-SHA256SUMS.asc"
+          fi
+
+      - name: Upload release bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sp-differ-${{ env.RELEASE_VERSION }}-${{ matrix.target }}-bundle
+          path: build/release-bundles/${{ matrix.target }}
           if-no-files-found: error
           retention-days: 30
 
@@ -154,7 +185,7 @@ jobs:
             runs-on: macos-14
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install native dependencies
         run: |
@@ -182,7 +213,7 @@ jobs:
           cp build/release_integrity.md "$dist/"
 
       - name: Upload per-arch macOS binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macos-${{ matrix.arch }}-raw-${{ env.RELEASE_VERSION }}
           path: build/macos-arch/${{ matrix.arch }}
@@ -194,9 +225,13 @@ jobs:
     needs: build-macos-arch
     runs-on: macos-14
     timeout-minutes: 45
+    permissions:
+      contents: read
+      attestations: write
+      id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install signing tools
         run: |
@@ -204,13 +239,13 @@ jobs:
           brew install gnupg
 
       - name: Download arm64 binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: macos-arm64-raw-${{ env.RELEASE_VERSION }}
           path: build/macos-raw/arm64
 
       - name: Download x86_64 binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: macos-x86_64-raw-${{ env.RELEASE_VERSION }}
           path: build/macos-raw/x86_64
@@ -276,10 +311,115 @@ jobs:
             --json-out "build/sp-differ-${RELEASE_VERSION}-macos-universal-verification.json" \
             --markdown-out "build/sp-differ-${RELEASE_VERSION}-macos-universal-verification.md"
 
+      - name: Attest packaged archive
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4
+        with:
+          subject-path: build/sp-differ-${{ env.RELEASE_VERSION }}-macos-universal.tar.gz
+
       - name: Upload universal archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: sp-differ-${{ env.RELEASE_VERSION }}-macos-universal
           path: build/sp-differ-${{ env.RELEASE_VERSION }}-macos-universal.tar.gz
           if-no-files-found: error
           retention-days: 30
+
+      - name: Stage universal release bundle
+        run: |
+          bundle="build/release-bundles/macos-universal"
+          dist="build/dist/sp-differ-${RELEASE_VERSION}-macos-universal"
+          mkdir -p "$bundle"
+          cp "build/sp-differ-${RELEASE_VERSION}-macos-universal.tar.gz" "$bundle/"
+          cp "build/sp-differ-${RELEASE_VERSION}-macos-universal-verification.json" "$bundle/"
+          cp "build/sp-differ-${RELEASE_VERSION}-macos-universal-verification.md" "$bundle/"
+          cp "$dist/SHA256SUMS" "$bundle/sp-differ-${RELEASE_VERSION}-macos-universal-SHA256SUMS"
+          if [ -f "$dist/SHA256SUMS.asc" ]; then
+            cp "$dist/SHA256SUMS.asc" "$bundle/sp-differ-${RELEASE_VERSION}-macos-universal-SHA256SUMS.asc"
+          fi
+
+      - name: Upload universal release bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sp-differ-${{ env.RELEASE_VERSION }}-macos-universal-bundle
+          path: build/release-bundles/macos-universal
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-release-draft:
+    name: Publish Draft Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build-linux
+      - build-macos-universal
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Download Linux x64 release bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: sp-differ-${{ env.RELEASE_VERSION }}-linux-x64-bundle
+          path: build/release-bundles/linux-x64
+
+      - name: Download Linux arm64 release bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: sp-differ-${{ env.RELEASE_VERSION }}-linux-arm64-bundle
+          path: build/release-bundles/linux-arm64
+
+      - name: Download macOS universal release bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: sp-differ-${{ env.RELEASE_VERSION }}-macos-universal-bundle
+          path: build/release-bundles/macos-universal
+
+      - name: Create draft GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          draft_state="$(gh release view "${RELEASE_VERSION}" --repo "${GITHUB_REPOSITORY}" --json isDraft --jq '.isDraft' 2>/dev/null || true)"
+          if [ "$draft_state" = "false" ]; then
+            echo "published release ${RELEASE_VERSION} already exists; refusing to mutate an immutable release"
+            exit 1
+          fi
+          if [ "$draft_state" = "true" ]; then
+            gh release delete "${RELEASE_VERSION}" --repo "${GITHUB_REPOSITORY}" --cleanup-tag=false --yes
+          fi
+
+          notes_file="build/release-notes.md"
+          mkdir -p build
+          cat > "$notes_file" <<'EOF'
+          Release candidate assets for this tag.
+
+          Verification checklist:
+          - Verify the signed tag before publication.
+          - Verify the attached per-platform SHA256SUMS files against the attached KEYS file.
+          - Review the attached packaged-release verification reports for each archive.
+          - Verify the GitHub-hosted provenance attestations for the published tarballs before final publication.
+
+          This release stays in draft so maintainers can review asset completeness and notes before immutable publication.
+          EOF
+
+          shopt -s nullglob
+          assets=(
+            KEYS
+            build/release-bundles/linux-x64/*
+            build/release-bundles/linux-arm64/*
+            build/release-bundles/macos-universal/*
+          )
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "no release assets staged"
+            exit 1
+          fi
+
+          gh release create "${RELEASE_VERSION}" \
+            "${assets[@]}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --draft \
+            --verify-tag \
+            --title "SP-DIFFER ${RELEASE_VERSION}" \
+            --notes-file "$notes_file"

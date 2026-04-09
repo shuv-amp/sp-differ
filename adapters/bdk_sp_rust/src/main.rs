@@ -336,7 +336,8 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
         .as_ref()
         .ok_or_else(|| "missing receiver_keys".to_owned())?;
     let scan_privkey_bytes = hex_decode(&receiver_keys.scan_privkey).map_err(|e| e.to_string())?;
-    let spend_privkey_bytes = hex_decode(&receiver_keys.spend_privkey).map_err(|e| e.to_string())?;
+    let spend_privkey_bytes =
+        hex_decode(&receiver_keys.spend_privkey).map_err(|e| e.to_string())?;
     let b_scan = SecretKey::from_slice(&scan_privkey_bytes).map_err(|e| e.to_string())?;
     let b_spend = SecretKey::from_slice(&spend_privkey_bytes).map_err(|e| e.to_string())?;
     let scan_pubkey = b_scan.public_key(&secp);
@@ -374,7 +375,10 @@ fn derive_receive_semantics(request: &AdapterRequest) -> Result<Value> {
         }));
     }
 
-    let eligible_pubkeys = eligible.iter().map(|entry| entry.public_key).collect::<Vec<_>>();
+    let eligible_pubkeys = eligible
+        .iter()
+        .map(|entry| entry.public_key)
+        .collect::<Vec<_>>();
     let eligible_refs = eligible_pubkeys.iter().collect::<Vec<_>>();
     let a_sum = PublicKey::combine_keys(&eligible_refs).map_err(|_| "point_at_infinity".to_owned());
     let a_sum = match a_sum {
@@ -546,7 +550,8 @@ fn normalize_outputs_to_scan(outputs_to_scan: &[String]) -> Result<HashSet<Strin
     let mut remaining = HashSet::new();
     for output in outputs_to_scan {
         let bytes = hex_decode(output).map_err(|e| e.to_string())?;
-        let pubkey = XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
+        let pubkey =
+            XOnlyPublicKey::from_slice(&bytes).map_err(|_| "malformed public key".to_owned())?;
         remaining.insert(hex_encode(pubkey.serialize()));
     }
     Ok(remaining)
@@ -570,7 +575,10 @@ fn build_sender_shared_secrets(
     Ok(entries)
 }
 
-fn calculate_input_hash(inputs: &[InputRequest], sum_input_pubkeys: &PublicKey) -> Result<[u8; 32]> {
+fn calculate_input_hash(
+    inputs: &[InputRequest],
+    sum_input_pubkeys: &PublicKey,
+) -> Result<[u8; 32]> {
     if inputs.is_empty() {
         return Err("no outpoints provided".to_owned());
     }
@@ -608,7 +616,10 @@ fn derive_tweak_point(
         .map_err(|e| format!("failed to derive tweak point: {}", e))
 }
 
-fn build_recipient_list(groups: &[RecipientGroupRequest], network_name: &str) -> Result<Vec<SilentPaymentCode>> {
+fn build_recipient_list(
+    groups: &[RecipientGroupRequest],
+    network_name: &str,
+) -> Result<Vec<SilentPaymentCode>> {
     let network = map_network(network_name)?;
     let mut recipients = Vec::new();
     for group in groups {
@@ -822,6 +833,9 @@ mod tests {
             "../../../tests/fixtures/receive_rejects_missing_witness_pubkey.request.json"
         ))
         .expect_err("request should fail");
-        assert_eq!(error, "failed to parse input pubkey: missing witness pubkey");
+        assert_eq!(
+            error,
+            "failed to parse input pubkey: missing witness pubkey"
+        );
     }
 }

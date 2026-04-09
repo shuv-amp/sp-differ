@@ -11,7 +11,6 @@ __pycache__/
 # Rust
 /target/
 workers/rust/target/
-workers/rust/Cargo.lock
 adapters/spdk_rust/target/
 adapters/silent_payments_rust/target/
 adapters/bip352_rust/target/

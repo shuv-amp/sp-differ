@@ -8,6 +8,9 @@ import sys
 from pathlib import Path
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 DEFAULT_TARGETS = [
     "README.md",
     "CHANGELOG.md",
@@ -49,7 +52,7 @@ CHECKS = [
 
 def _iter_files(targets):
     for raw_target in targets:
-        path = Path(raw_target)
+        path = _resolve_repo_path(raw_target)
         if not path.exists():
             raise FileNotFoundError("missing path: {}".format(path))
         if path.is_dir():
@@ -58,6 +61,16 @@ def _iter_files(targets):
                     yield child
         elif path.suffix in SCAN_SUFFIXES:
             yield path
+
+
+def _resolve_repo_path(raw_target):
+    candidate = Path(raw_target)
+    if not candidate.is_absolute():
+        candidate = ROOT / candidate
+    resolved = candidate.resolve()
+    if not resolved.is_relative_to(ROOT):
+        raise ValueError("path escapes repository root: {}".format(raw_target))
+    return resolved
 
 
 def scan_text(text):

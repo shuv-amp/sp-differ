@@ -33,9 +33,16 @@ Seeded workflows record seeds, input cases, and worker versions. Replayable arti
 
 ## Local Smoke Tests
 
+- `make lint` runs the static discipline lane: strict C++ compile warnings, `rustfmt --check`, `cargo clippy -D warnings`, `gofmt`, `go vet`, public-claim checks, source-comment checks, and workflow hardening checks.
 - `make check` runs core I/O, case parser, and header validation smoke tests.
+- `make check-rust-clippy` runs the Rust warning lane across the in-tree worker and Rust adapters.
+- `make check-go-vet` runs `go vet` against the in-tree Go adapter with readonly module resolution.
 - `make check-claims` verifies that public docs and templates avoid unsupported hype and unsupported future-tense release wording.
 - `make check-comments` verifies that repo-owned source comments avoid deferred-note markers and hype wording.
+- `make check-workflows` verifies that GitHub Actions workflows keep top-level concurrency blocks, least-privilege workflow permissions, and SHA-pinned external actions.
+- `make check-abi-symbols` verifies that the compiled worker and semantic-worker shared libraries still export the documented stable ABI entrypoints.
+- `make check-clang-tidy` runs the curated `clang-tidy` profile across the compiled C++ translation units when the tool is installed.
+- `make check-compile-warnings` rebuilds the compiled surfaces under `-Wall -Wextra -Wpedantic -Werror` in an isolated build directory.
 - `make sanitize-smoke SANITIZE_CXX=clang++` runs the C++ core, runner, compare, and semantic smoke surfaces under `asan`/`ubsan` in an isolated build directory.
 - `make cli-smoke` exercises the public CLI release-readiness aggregator against a synthetic build tree.
 - `make release-report` writes a combined release-readiness summary from the current local evidence.
@@ -59,14 +66,19 @@ Seeded workflows record seeds, input cases, and worker versions. Replayable arti
 - `make bench-reference` and `make bench-adapters` measure harness-level adapter latency and throughput on the same pinned derived v2 corpus, while still failing the run if semantic correctness breaks.
 - `make release-evidence` hashes the materialized readiness and benchmark outputs into an explicit release-evidence manifest.
 - `make verify-release-evidence` re-checks that manifest against the current files and can also be paired with `git tag -v` during release review.
+- `make verify-release-attestation` verifies a downloaded release archive against the GitHub-hosted provenance attestation emitted by `.github/workflows/release.yml`.
 - `make maturity-signoff` is the most complete local maturity lane: live readiness, benchmark matrix, refreshed local report, and release-evidence hashing.
 - `make fuzz-corpus` verifies the checked-in semantic worker fuzz corpus.
 - `make fuzz-minimizer-smoke` exercises the semantic fuzz reducer against synthetic structured and raw failures.
 - `make fuzz-semantic-spdk`, `make fuzz-semantic-silent-payments`, `make fuzz-semantic-bip352`, and `make fuzz-semantic-go-bip352` run deterministic semantic-worker fuzzing with replayable and auto-minimized artifacts under `build/`.
 - `make fuzz-semantic-workers FUZZ_STRUCTURED_ITERATIONS=64 FUZZ_RAW_ITERATIONS=64` runs the longer deterministic local matrix across all semantic workers.
 - `.github/workflows/ci.yml` currently runs the regular Ubuntu `Build, Test, and Smoke` lane on pushes and pull requests targeting `main`.
+- `.github/workflows/ci.yml` also runs a separate lint-and-warnings lane plus a sanitizer smoke lane so warning regressions and undefined-behavior regressions surface before the longer test matrix finishes.
+- `.github/workflows/ci.yml` also runs a dedicated static-analysis lane with `clang-tidy` on the compiled C++ surfaces.
+- `.github/workflows/ci.yml` also runs a macOS build-and-smoke lane so platform drift is exercised on the same operating-system family used by the release workflow.
 - `.github/workflows/nightly-fuzz.yml` runs the longer scheduled semantic-worker fuzz jobs and uploads replay bundles as tarred artifacts.
 - `.github/workflows/maturity.yml` runs scheduled live release verification, benchmark collection, release-evidence generation, and artifact upload.
+- `.github/workflows/release.yml` now attests each packaged release tarball with GitHub artifact attestations in addition to the existing signed checksum flow.
 - `sp-differ status --profile release --require-green` now provides a single readiness check over the current oracle, adapter, regression, and fuzz evidence, and it also incorporates `build/bip352_external_probe.json` automatically when present so stale or failed integrated external-version evidence is reflected in the status report.
 - `make verify-release-live` is the stricter networked sign-off path: it runs the release-profile verification suite and, when external-probe candidate metadata is present, refreshes the live upstream probe before writing `build/sp_differ_release_readiness_live.json`. Without that metadata it still writes the live readiness report and notes that upstream freshness was not evaluated.
 - `make vectors` runs the upstream oracle, validates the full derived v2 semantic corpus, checks the generated v1-compatible derived subset, and runs that subset through both byte-worker libraries.

@@ -18,28 +18,129 @@ defaults:
     shell: bash
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION_FILE: ".python-version"
+  RUST_TOOLCHAIN_VERSION: "1.92.0"
 
 jobs:
+  lint:
+    name: Lint and Warnings
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN_VERSION }}
+          components: rustfmt,clippy
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: adapters/go_bip352/go.mod
+          cache-dependency-path: adapters/go_bip352/go.sum
+
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libsecp256k1-dev libssl-dev clang
+
+      - name: Lint and compile with strict warnings
+        run: make lint
+
+  sanitize:
+    name: Sanitizer Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libsecp256k1-dev libssl-dev clang
+
+      - name: Sanitizer smoke
+        run: make sanitize-smoke SANITIZE_CXX=clang++
+
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libsecp256k1-dev libssl-dev clang clang-tidy
+
+      - name: Run clang-tidy
+        run: make check-clang-tidy
+
+  build-smoke-macos:
+    name: Build and Smoke (macOS)
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install native dependencies
+        run: |
+          brew update
+          brew install secp256k1 openssl@3
+
+      - name: Build
+        run: make build
+
+      - name: Smoke
+        run: make smoke
+
   build-test-smoke:
     name: Build, Test, and Smoke
+    needs:
+      - lint
+      - sanitize
+      - static-analysis
     runs-on: ubuntu-latest
     timeout-minutes: 90
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
 
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN_VERSION }}
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: adapters/go_bip352/go.mod
           cache-dependency-path: adapters/go_bip352/go.sum

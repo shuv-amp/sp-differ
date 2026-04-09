@@ -13,6 +13,13 @@ pub extern "C" fn sp_differ_semantic_worker_api_version() -> u32 {
 }
 
 #[no_mangle]
+/// Runs the semantic-worker JSON ABI entrypoint.
+///
+/// # Safety
+/// `output` and `output_len` must be valid writable pointers. When `input_len`
+/// is non-zero, `input` must point to `input_len` readable bytes. Any buffer
+/// returned through `output` must be released with
+/// `sp_differ_semantic_worker_free`.
 pub unsafe extern "C" fn sp_differ_semantic_worker_run(
     input: *const c_uchar,
     input_len: size_t,
@@ -56,6 +63,11 @@ pub unsafe extern "C" fn sp_differ_semantic_worker_run(
 }
 
 #[no_mangle]
+/// Releases a buffer returned by `sp_differ_semantic_worker_run`.
+///
+/// # Safety
+/// `output` must be null or a pointer returned by
+/// `sp_differ_semantic_worker_run` that has not already been freed.
 pub unsafe extern "C" fn sp_differ_semantic_worker_free(output: *mut c_uchar) {
     if !output.is_null() {
         free(output as *mut c_void);
