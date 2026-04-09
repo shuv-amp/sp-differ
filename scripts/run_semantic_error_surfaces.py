@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -20,6 +21,7 @@ from semantic_contract import compare_semantic_results, validate_semantic_result
 
 
 ROOT = Path(__file__).resolve().parents[1]
+BUILD_DIR = ROOT / "build"
 DEFAULT_MANIFEST = ROOT / "tests" / "error_surfaces" / "semantic" / "manifest.json"
 DEFAULT_BRIDGE = ROOT / "scripts" / "semantic_bridge.py"
 DEFAULT_COMPARE_BIN = ROOT / "build" / "sp_differ_compare"
@@ -27,6 +29,9 @@ FIXTURE_SRC = ROOT / "tests" / "fixtures" / "semantic_worker_smoke.cpp"
 DEFAULT_REFERENCE = ROOT / "tests" / "vectors" / "bip352" / "official" / "reference" / "reference.py"
 SEND_CASE = ROOT / "tests" / "vectors" / "bip352" / "derived" / "v2" / "official_case_00_send_00.hex"
 RECEIVE_CASE = ROOT / "tests" / "vectors" / "bip352" / "derived" / "v2" / "official_case_00_receive_00.hex"
+DEFAULT_JSON_OUT = BUILD_DIR / "semantic_error_surface_report.json"
+DEFAULT_MARKDOWN_OUT = BUILD_DIR / "semantic_error_surface_report.md"
+FIXTURE_CXXFLAGS = ("-std=c++17", "-O2", "-fPIC")
 GENERATOR_COMPRESSED = "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
 
 STATUS_TO_BYTE_CODE = {
@@ -58,6 +63,28 @@ def _default_cpp_worker_lib() -> Path:
 
 def _default_rust_worker_lib() -> Path:
     return ROOT / "build" / _shared_lib_name("sp_differ_worker_rust")
+
+
+def _resolve_within(root: Path, path: Path, *, require_exists: bool = True) -> Path:
+    resolved_root = root.resolve()
+    resolved_path = path.resolve()
+    if resolved_path != resolved_root and resolved_root not in resolved_path.parents:
+        raise SemanticErrorSurfaceError("{} escapes {}".format(path, root))
+    if require_exists and not resolved_path.exists():
+        raise SemanticErrorSurfaceError("path not found: {}".format(resolved_path))
+    return resolved_path
+
+
+def _resolve_build_output(path: Path) -> Path:
+    candidate = path if path.is_absolute() else ROOT / path
+    return _resolve_within(BUILD_DIR, candidate, require_exists=False)
+
+
+def _fixture_compiler() -> str:
+    compiler = shutil.which("c++")
+    if compiler is None:
+        raise SemanticErrorSurfaceError("c++ compiler not found in PATH")
+    return compiler
 
 
 def _load_json(path: Path) -> Any:
@@ -149,13 +176,10 @@ def _run_command(
 def _build_fixture(
     out_path: Path,
     response_env: str,
-    *,
-    cxx: str,
-    cxxflags: str,
 ) -> None:
     command = [
-        cxx,
-        *shlex.split(cxxflags),
+        _fixture_compiler(),
+        *FIXTURE_CXXFLAGS,
         "-shared",
         "-DSP_DIFFER_SEMANTIC_SMOKE_ENV={}".format(response_env),
         "-o",
@@ -341,8 +365,6 @@ def _run_synthetic_cases(
     bridge_path: Path,
     compare_bin: Optional[Path],
     *,
-    cxx: str,
-    cxxflags: str,
     skip_compiled_compare: bool,
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, str]]]:
     results: List[Dict[str, Any]] = []
@@ -355,12 +377,12 @@ def _run_synthetic_cases(
         if not skip_compiled_compare:
             if compare_bin is None or not compare_bin.is_file():
                 raise SemanticErrorSurfaceError("compare binary not found: {}".format(compare_bin))
-            _build_fixture(left_lib, "SP_DIFFER_SEMANTIC_SMOKE_RESPONSE_LEFT", cxx=cxx, cxxflags=cxxflags)
-            _build_fixture(right_lib, "SP_DIFFER_SEMANTIC_SMOKE_RESPONSE_RIGHT", cxx=cxx, cxxflags=cxxflags)
+            _build_fixture(left_lib, "SP_DIFFER_SEMANTIC_SMOKE_RESPONSE_LEFT")
+            _build_fixture(right_lib, "SP_DIFFER_SEMANTIC_SMOKE_RESPONSE_RIGHT")
 
         for entry in manifest["cases"]:
             case_id = entry["id"]
-            fixture_path = manifest_path.parent / entry["path"]
+            fixture_path = _resolve_within(manifest_path.parent, manifest_path.parent / entry["path"])
             try:
                 fixture = _load_json(fixture_path)
                 canonical_python = validate_semantic_result(fixture)
@@ -482,36 +504,6 @@ def _run_byte_worker_cases(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate tracked semantic error surfaces")
     parser.add_argument(
-        "--manifest",
-        type=Path,
-        default=DEFAULT_MANIFEST,
-        help="Semantic error-surface manifest",
-    )
-    parser.add_argument(
-        "--bridge",
-        type=Path,
-        default=DEFAULT_BRIDGE,
-        help="semantic_bridge.py helper path",
-    )
-    parser.add_argument(
-        "--compare-bin",
-        type=Path,
-        default=DEFAULT_COMPARE_BIN,
-        help="Compiled compare binary used to validate fixture acceptance",
-    )
-    parser.add_argument(
-        "--cpp-worker-lib",
-        type=Path,
-        default=_default_cpp_worker_lib(),
-        help="C++ byte worker shared library",
-    )
-    parser.add_argument(
-        "--rust-worker-lib",
-        type=Path,
-        default=_default_rust_worker_lib(),
-        help="Rust byte worker shared library",
-    )
-    parser.add_argument(
         "--skip-compiled-compare",
         action="store_true",
         help="Skip the compiled compare-path check for synthetic fixtures",
@@ -522,44 +514,40 @@ def main() -> int:
         help="Skip the deterministic byte-worker runtime cases",
     )
     parser.add_argument(
-        "--cxx",
-        default=os.environ.get("CXX", "c++"),
-        help="C++ compiler used for mock semantic worker fixtures",
-    )
-    parser.add_argument(
-        "--cxxflags",
-        default=os.environ.get("CXXFLAGS", "-std=c++17 -O2 -fPIC"),
-        help="C++ flags used for mock semantic worker fixtures",
-    )
-    parser.add_argument(
         "--json-out",
         type=Path,
-        default=Path("build/semantic_error_surface_report.json"),
+        default=DEFAULT_JSON_OUT.relative_to(ROOT),
         help="Machine-readable report path",
     )
     parser.add_argument(
         "--markdown-out",
         type=Path,
-        default=Path("build/semantic_error_surface_report.md"),
+        default=DEFAULT_MARKDOWN_OUT.relative_to(ROOT),
         help="Markdown report path",
     )
     args = parser.parse_args()
 
     try:
-        manifest = _load_manifest(args.manifest)
+        manifest_path = _resolve_within(ROOT, DEFAULT_MANIFEST)
+        bridge_path = _resolve_within(ROOT, DEFAULT_BRIDGE)
+        compare_bin = _resolve_within(ROOT, DEFAULT_COMPARE_BIN)
+        cpp_worker_lib = _resolve_within(ROOT, _default_cpp_worker_lib())
+        rust_worker_lib = _resolve_within(ROOT, _default_rust_worker_lib())
+        json_out = _resolve_build_output(args.json_out)
+        markdown_out = _resolve_build_output(args.markdown_out)
+
+        manifest = _load_manifest(manifest_path)
         synthetic_results, synthetic_failures = _run_synthetic_cases(
-            args.manifest,
+            manifest_path,
             manifest,
-            args.bridge,
-            args.compare_bin,
-            cxx=args.cxx,
-            cxxflags=args.cxxflags,
+            bridge_path,
+            compare_bin,
             skip_compiled_compare=args.skip_compiled_compare,
         )
         byte_worker_results, byte_worker_failures = _run_byte_worker_cases(
             manifest,
-            cpp_worker_lib=args.cpp_worker_lib,
-            rust_worker_lib=args.rust_worker_lib,
+            cpp_worker_lib=cpp_worker_lib,
+            rust_worker_lib=rust_worker_lib,
             skip_byte_workers=args.skip_byte_workers,
         )
     except Exception as exc:
@@ -577,7 +565,7 @@ def main() -> int:
     )
     report = {
         "status": "passed" if not failures else "failed",
-        "manifest": str(args.manifest),
+        "manifest": str(manifest_path),
         "covered_statuses": covered_statuses,
         "counts": {
             "synthetic_contract_cases": len(synthetic_results),
@@ -593,9 +581,9 @@ def main() -> int:
         "byte_worker_runtime_cases": byte_worker_results,
         "failures": failures,
     }
-    _write_json(args.json_out, report)
-    args.markdown_out.parent.mkdir(parents=True, exist_ok=True)
-    args.markdown_out.write_text(_render_markdown(report) + "\n", encoding="utf-8")
+    _write_json(json_out, report)
+    markdown_out.parent.mkdir(parents=True, exist_ok=True)
+    markdown_out.write_text(_render_markdown(report) + "\n", encoding="utf-8")
 
     print("semantic error surfaces {}".format(report["status"]))
     print("  covered statuses: {}".format(", ".join(covered_statuses)))
@@ -606,8 +594,8 @@ def main() -> int:
         )
     )
     print("  failures: {}".format(len(failures)))
-    print("  wrote report: {}".format(args.json_out))
-    print("  wrote markdown: {}".format(args.markdown_out))
+    print("  wrote report: {}".format(json_out))
+    print("  wrote markdown: {}".format(markdown_out))
     return 0 if not failures else 2
 
 

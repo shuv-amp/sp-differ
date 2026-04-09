@@ -19,7 +19,12 @@ def _require(condition: bool, message: str) -> None:
 
 
 def main() -> int:
-    with tempfile.TemporaryDirectory(prefix="sp_differ_semantic_error_surface_smoke_") as tmp:
+    build_dir = ROOT / "build"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="sp_differ_semantic_error_surface_smoke_",
+        dir=str(build_dir),
+    ) as tmp:
         tmp_root = Path(tmp)
         report_path = tmp_root / "report.json"
         markdown_path = tmp_root / "report.md"
@@ -28,9 +33,9 @@ def main() -> int:
                 sys.executable,
                 str(RUNNER),
                 "--json-out",
-                str(report_path),
+                str(report_path.relative_to(ROOT)),
                 "--markdown-out",
-                str(markdown_path),
+                str(markdown_path.relative_to(ROOT)),
             ],
             cwd=str(ROOT),
             stdout=subprocess.PIPE,
