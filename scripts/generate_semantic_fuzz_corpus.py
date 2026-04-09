@@ -6,12 +6,14 @@ import argparse
 import json
 import shutil
 import sys
+from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from bip352_reference import load_reference_module
 from bip352_vectors import write_json
 from parse_case import CaseV2, parse_case
-from semantic_adapter import build_semantic_request
+from semantic_adapter import build_semantic_request, validate_semantic_request
 from semantic_contract import validate_semantic_result
 
 
@@ -19,6 +21,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DERIVED_MANIFEST = ROOT / "tests" / "vectors" / "bip352" / "derived" / "v2" / "manifest.json"
 DEFAULT_REGRESSION_MANIFEST = ROOT / "tests" / "regressions" / "semantic" / "manifest.json"
 DEFAULT_CORPUS_ROOT = ROOT / "fuzz" / "corpus" / "semantic_worker"
+DEFAULT_REFERENCE = ROOT / "tests" / "vectors" / "bip352" / "official" / "reference" / "reference.py"
+
+FLAG_INPUT_PUBLIC_KEYS = 1 << 2
 
 
 class SemanticFuzzCorpusError(Exception):
@@ -38,6 +43,81 @@ def _load_json(path: Path) -> Any:
 
 def _canonical_json_bytes(payload: Dict[str, Any]) -> bytes:
     return (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _load_reference_module():
+    return load_reference_module(DEFAULT_REFERENCE, DEFAULT_REFERENCE.parent)
+
+
+def _append_valid_entry(
+    entries: List[Dict[str, Any]],
+    files: Dict[str, bytes],
+    seen_ids: set,
+    entry: Dict[str, Any],
+    request: Dict[str, Any],
+) -> None:
+    if entry["id"] in seen_ids:
+        return
+    files[entry["path"]] = _canonical_json_bytes(request)
+    entries.append(entry)
+    seen_ids.add(entry["id"])
+
+
+def _find_entry(entries: List[Dict[str, Any]], kind: str, require_privkey: bool = False) -> Optional[Dict[str, Any]]:
+    for entry in entries:
+        if entry["kind"] != kind:
+            continue
+        if not require_privkey:
+            return entry
+        request = entry.get("_request")
+        if request is None:
+            continue
+        if any(item.get("privkey") is not None for item in request["inputs"]):
+            return entry
+    return None
+
+
+def _derive_compressed_pubkey_hex(reference_module, privkey_hex: str) -> str:
+    scalar = reference_module.Scalar.from_bytes_checked(bytes.fromhex(privkey_hex))
+    return (scalar * reference_module.G).to_bytes_compressed().hex()
+
+
+def _variant_request(
+    base_request: Dict[str, Any],
+    variant_id: str,
+    variant_comment: str,
+    *,
+    network: Optional[str] = None,
+    silent_payment_version: Optional[int] = None,
+    populate_pubkeys: bool = False,
+) -> Dict[str, Any]:
+    request = deepcopy(base_request)
+    request["source"] = deepcopy(base_request["source"])
+    request["source"]["id"] = variant_id
+    request["source"]["comment"] = "{} [{}]".format(
+        base_request["source"]["comment"], variant_comment
+    )
+    if network is not None:
+        request["network"] = network
+    if silent_payment_version is not None:
+        request["silent_payment_version"] = int(silent_payment_version)
+    if populate_pubkeys:
+        reference_module = _load_reference_module()
+        populated = False
+        for item in request["inputs"]:
+            privkey = item.get("privkey")
+            if privkey is None:
+                continue
+            item["pubkey"] = _derive_compressed_pubkey_hex(reference_module, privkey)
+            populated = True
+        if not populated:
+            raise SemanticFuzzCorpusError(
+                "cannot populate pubkeys for {}; no input private keys present".format(
+                    base_request["source"]["id"]
+                )
+            )
+        request["flags"] = int(request["flags"]) | FLAG_INPUT_PUBLIC_KEYS
+    return validate_semantic_request(request)
 
 
 def _build_valid_seed_entries(
@@ -64,43 +144,149 @@ def _build_valid_seed_entries(
             expectation_hints=expectation_hints,
         )
         relpath = "valid/{}.json".format(item["id"])
-        files[relpath] = _canonical_json_bytes(request)
-        entries.append(
+        _append_valid_entry(
+            entries,
+            files,
+            seen_ids,
             {
                 "id": item["id"],
                 "kind": item["kind"],
                 "path": relpath,
                 "source": "derived-v2",
                 "source_case_path": str(case_path.relative_to(ROOT)),
-            }
+                "_request": request,
+            },
+            request,
         )
-        seen_ids.add(item["id"])
+
+    base_send = _find_entry(entries, "send")
+    base_receive = _find_entry(entries, "receive")
+    base_send_with_privkeys = _find_entry(entries, "send", require_privkey=True)
+    coverage_variants: List[Tuple[Dict[str, Any], str, str, Dict[str, Any]]] = []
+    if base_send is not None:
+        coverage_variants.append(
+            (
+                base_send,
+                "{}__testnet".format(base_send["id"]),
+                "testnet variant",
+                {"network": "testnet"},
+            )
+        )
+        coverage_variants.append(
+            (
+                base_send,
+                "{}__regtest".format(base_send["id"]),
+                "regtest variant",
+                {"network": "regtest"},
+            )
+        )
+        coverage_variants.append(
+            (
+                base_send,
+                "{}__v1".format(base_send["id"]),
+                "silent payment version 1",
+                {"silent_payment_version": 1},
+            )
+        )
+    if base_receive is not None:
+        coverage_variants.append(
+            (
+                base_receive,
+                "{}__testnet".format(base_receive["id"]),
+                "testnet variant",
+                {"network": "testnet"},
+            )
+        )
+        coverage_variants.append(
+            (
+                base_receive,
+                "{}__regtest".format(base_receive["id"]),
+                "regtest variant",
+                {"network": "regtest"},
+            )
+        )
+        coverage_variants.append(
+            (
+                base_receive,
+                "{}__v1".format(base_receive["id"]),
+                "silent payment version 1",
+                {"silent_payment_version": 1},
+            )
+        )
+    if base_send_with_privkeys is not None:
+        coverage_variants.append(
+            (
+                base_send_with_privkeys,
+                "{}__with_pubkeys".format(base_send_with_privkeys["id"]),
+                "explicit input pubkeys",
+                {"populate_pubkeys": True},
+            )
+        )
+
+    for base_entry, variant_id, variant_comment, kwargs in coverage_variants:
+        base_request = base_entry["_request"]
+        variant_request = _variant_request(
+            base_request,
+            variant_id,
+            variant_comment,
+            network=kwargs.get("network"),
+            silent_payment_version=kwargs.get("silent_payment_version"),
+            populate_pubkeys=bool(kwargs.get("populate_pubkeys", False)),
+        )
+        _append_valid_entry(
+            entries,
+            files,
+            seen_ids,
+            {
+                "id": variant_id,
+                "kind": base_entry["kind"],
+                "path": "valid/{}.json".format(variant_id),
+                "source": "derived-v2-coverage-variant",
+                "variant_of": base_entry["id"],
+                "source_case_path": base_entry.get("source_case_path"),
+                "_request": variant_request,
+            },
+            variant_request,
+        )
 
     regression_manifest = _load_json(regression_manifest_path)
     for item in regression_manifest.get("cases", []):
         request_path = regression_manifest_path.parent / item["request_path"]
-        request = build_semantic_request(
-            item["kind"],
-            _read_case_v2(regression_manifest_path.parent / item["path"]),
-            item["source"],
-            expectation_hints=None,
-        )
-        request = _load_json(request_path) if request_path.exists() else request
+        case_path_value = item.get("path")
+        case_path = None
+        if isinstance(case_path_value, str):
+            case_path = regression_manifest_path.parent / case_path_value
+        if request_path.exists():
+            request = validate_semantic_request(_load_json(request_path))
+        else:
+            if case_path is None:
+                raise SemanticFuzzCorpusError(
+                    "regression {} is missing both path and request_path".format(item.get("id"))
+                )
+            request = build_semantic_request(
+                item["kind"],
+                _read_case_v2(case_path),
+                item["source"],
+                expectation_hints=None,
+            )
         relpath = "valid/regression_{}.json".format(item["id"])
         if item["id"] in seen_ids:
             continue
         files[relpath] = _canonical_json_bytes(request)
-        entries.append(
-            {
-                "id": item["id"],
-                "kind": item["kind"],
-                "path": relpath,
-                "source": "semantic-regression",
-                "source_case_path": str((regression_manifest_path.parent / item["path"]).relative_to(ROOT)),
-            }
-        )
-        seen_ids.add(item["id"])
+        entry = {
+            "id": item["id"],
+            "kind": item["kind"],
+            "path": relpath,
+            "source": "semantic-regression",
+        }
+        if case_path is not None:
+            entry["source_case_path"] = str(case_path.relative_to(ROOT))
+        if item.get("request_path") is not None:
+            entry["source_request_path"] = str(request_path.relative_to(ROOT))
+        _append_valid_entry(entries, files, seen_ids, {**entry, "_request": request}, request)
 
+    for entry in entries:
+        entry.pop("_request", None)
     entries.sort(key=lambda item: item["id"])
     return entries, files
 

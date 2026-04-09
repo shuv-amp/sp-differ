@@ -55,11 +55,67 @@
       "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex"
     },
     {
+      "id": "official_case_00_receive_00__regtest",
+      "kind": "receive",
+      "path": "valid/official_case_00_receive_00__regtest.json",
+      "source": "derived-v2-coverage-variant",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex",
+      "variant_of": "official_case_00_receive_00"
+    },
+    {
+      "id": "official_case_00_receive_00__testnet",
+      "kind": "receive",
+      "path": "valid/official_case_00_receive_00__testnet.json",
+      "source": "derived-v2-coverage-variant",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex",
+      "variant_of": "official_case_00_receive_00"
+    },
+    {
+      "id": "official_case_00_receive_00__v1",
+      "kind": "receive",
+      "path": "valid/official_case_00_receive_00__v1.json",
+      "source": "derived-v2-coverage-variant",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex",
+      "variant_of": "official_case_00_receive_00"
+    },
+    {
       "id": "official_case_00_send_00",
       "kind": "send",
       "path": "valid/official_case_00_send_00.json",
       "source": "derived-v2",
       "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex"
+    },
+    {
+      "id": "official_case_00_send_00__regtest",
+      "kind": "send",
+      "path": "valid/official_case_00_send_00__regtest.json",
+      "source": "derived-v2-coverage-variant",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex",
+      "variant_of": "official_case_00_send_00"
+    },
+    {
+      "id": "official_case_00_send_00__testnet",
+      "kind": "send",
+      "path": "valid/official_case_00_send_00__testnet.json",
+      "source": "derived-v2-coverage-variant",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex",
+      "variant_of": "official_case_00_send_00"
+    },
+    {
+      "id": "official_case_00_send_00__v1",
+      "kind": "send",
+      "path": "valid/official_case_00_send_00__v1.json",
+      "source": "derived-v2-coverage-variant",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex",
+      "variant_of": "official_case_00_send_00"
+    },
+    {
+      "id": "official_case_00_send_00__with_pubkeys",
+      "kind": "send",
+      "path": "valid/official_case_00_send_00__with_pubkeys.json",
+      "source": "derived-v2-coverage-variant",
+      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex",
+      "variant_of": "official_case_00_send_00"
     },
     {
       "id": "official_case_01_receive_00",
@@ -339,7 +395,8 @@
       "kind": "send",
       "path": "valid/regression_official_case_19_send_00__silent_payments.json",
       "source": "semantic-regression",
-      "source_case_path": "tests/regressions/semantic/cases/official_case_19_send_00__silent_payments/case.hex"
+      "source_case_path": "tests/regressions/semantic/cases/official_case_19_send_00__silent_payments/case.hex",
+      "source_request_path": "tests/regressions/semantic/cases/official_case_19_send_00__silent_payments/request.json"
     },
     {
       "id": "official_case_20_receive_00",
@@ -374,7 +431,8 @@
       "kind": "send",
       "path": "valid/regression_official_case_21_send_00__silent_payments.json",
       "source": "semantic-regression",
-      "source_case_path": "tests/regressions/semantic/cases/official_case_21_send_00__silent_payments/case.hex"
+      "source_case_path": "tests/regressions/semantic/cases/official_case_21_send_00__silent_payments/case.hex",
+      "source_request_path": "tests/regressions/semantic/cases/official_case_21_send_00__silent_payments/request.json"
     },
     {
       "id": "official_case_22_receive_00",
@@ -431,6 +489,20 @@
       "path": "valid/official_case_25_send_00.json",
       "source": "derived-v2",
       "source_case_path": "tests/vectors/bip352/derived/v2/official_case_25_send_00.hex"
+    },
+    {
+      "id": "official_case_25_send_00__repeated_key_unique_outpoint__silent_payments",
+      "kind": "send",
+      "path": "valid/regression_official_case_25_send_00__repeated_key_unique_outpoint__silent_payments.json",
+      "source": "semantic-regression",
+      "source_request_path": "tests/regressions/semantic/cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json"
+    },
+    {
+      "id": "official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust",
+      "kind": "send",
+      "path": "valid/regression_official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust.json",
+      "source": "semantic-regression",
+      "source_request_path": "tests/regressions/semantic/cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json"
     },
     {
       "id": "official_case_26_receive_00",

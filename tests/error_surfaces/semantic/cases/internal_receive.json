@@ -1,0 +1,28 @@
+{
+  "case_format_version": 2,
+  "detailed_outputs_available": true,
+  "found_output_count": 0,
+  "found_outputs": [],
+  "input_hash": null,
+  "input_pubkey_sum": null,
+  "input_pubkeys": [],
+  "kind": "receive",
+  "notes": [
+    "error_surface_fixture",
+    "reserved_contract_status"
+  ],
+  "receiving_addresses": [
+    "sp1syntheticinternalreceive"
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "internal",
+  "shared_secret": null,
+  "source": {
+    "case_index": 9004,
+    "comment": "semantic_error_surface_internal_receive",
+    "entry_index": 0,
+    "id": "semantic_error_surface_internal_receive",
+    "kind": "receive"
+  },
+  "tweak": null
+}

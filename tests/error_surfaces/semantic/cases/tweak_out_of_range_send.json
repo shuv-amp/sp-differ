@@ -1,0 +1,34 @@
+{
+  "acceptable_output_sets": [
+    []
+  ],
+  "case_format_version": 2,
+  "input_hash": null,
+  "input_private_key_sum": null,
+  "input_pubkeys": [
+    "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+  ],
+  "kind": "send",
+  "notes": [
+    "error_surface_fixture",
+    "reserved_contract_status"
+  ],
+  "output_count_options": [
+    0
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "tweak_out_of_range",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+      "shared_secret": null
+    }
+  ],
+  "source": {
+    "case_index": 9003,
+    "comment": "semantic_error_surface_tweak_out_of_range_send",
+    "entry_index": 0,
+    "id": "semantic_error_surface_tweak_out_of_range_send",
+    "kind": "send"
+  }
+}

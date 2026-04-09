@@ -82,6 +82,7 @@ def _promote_artifact(
     suite_root: Path,
     manifest_cases: List[Dict[str, Any]],
     force: bool,
+    expectation_mode: str,
 ) -> str:
     summary_path = artifact_dir / "summary.json"
     request_path = artifact_dir / "request.json"
@@ -94,13 +95,15 @@ def _promote_artifact(
         raise RuntimeError("missing request.json in {}".format(artifact_dir))
     if not expected_path.exists():
         raise RuntimeError("missing expected.json in {}".format(artifact_dir))
-    if not case_path.exists():
-        raise RuntimeError("missing case.hex in {}".format(artifact_dir))
 
     summary = _load_json(summary_path)
     request = _load_json(request_path)
     expected = _load_json(expected_path)
     actual = _load_json(actual_path) if actual_path.exists() else None
+    if expectation_mode == "observed_actual" and actual is None:
+        raise RuntimeError(
+            "observed_actual expectation mode requires actual.json in {}".format(artifact_dir)
+        )
     regression_id = "{}__{}".format(summary["id"], _slugify(summary["adapter_name"]))
     target_dir = suite_root / "cases" / regression_id
     if target_dir.exists() and force:
@@ -114,9 +117,15 @@ def _promote_artifact(
     copied_actual = target_dir / "observed_actual.json"
     provenance_path = target_dir / "provenance.json"
 
-    if copied_case.exists() and not force:
+    if target_dir.exists() and not force and provenance_path.exists():
         existing_provenance = _load_json(provenance_path) if provenance_path.exists() else {}
-        if existing_provenance.get("case_sha256") == _sha256(case_path):
+        if (
+            existing_provenance.get("request_sha256") == _sha256(request_path)
+            and (
+                not case_path.exists()
+                or existing_provenance.get("case_sha256") == _sha256(case_path)
+            )
+        ):
             return regression_id
         raise RuntimeError(
             "regression {} already exists with different contents; use --force".format(
@@ -124,7 +133,8 @@ def _promote_artifact(
             )
         )
 
-    shutil.copyfile(case_path, copied_case)
+    if case_path.exists():
+        shutil.copyfile(case_path, copied_case)
     shutil.copyfile(expected_path, copied_expected)
     shutil.copyfile(request_path, copied_request)
     shutil.copyfile(summary_path, copied_summary)
@@ -139,9 +149,11 @@ def _promote_artifact(
         "errors": summary["errors"],
         "captured_from_artifact_dir": str(artifact_dir),
         "repro_cmd": summary["repro_cmd"],
-        "case_sha256": _sha256(case_path),
+        "request_sha256": _sha256(request_path),
+        "case_sha256": _sha256(case_path) if case_path.exists() else None,
         "expected_sha256": _sha256(expected_path),
         "actual_sha256": _sha256(actual_path) if actual is not None else None,
+        "expectation_mode": expectation_mode,
     }
     provenance_path.write_text(
         json.dumps(provenance, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -152,7 +164,6 @@ def _promote_artifact(
         "source_case_id": summary["id"],
         "adapter_name": summary["adapter_name"],
         "kind": request["kind"],
-        "path": _relpath(copied_case, suite_root),
         "expectation_path": _relpath(copied_expected, suite_root),
         "request_path": _relpath(copied_request, suite_root),
         "observed_summary_path": _relpath(copied_summary, suite_root),
@@ -160,7 +171,10 @@ def _promote_artifact(
         "observed_actual_path": None if actual is None else _relpath(copied_actual, suite_root),
         "errors": summary["errors"],
         "source": expected["source"],
+        "expectation_mode": expectation_mode,
     }
+    if case_path.exists():
+        entry["path"] = _relpath(copied_case, suite_root)
 
     manifest_cases[:] = [item for item in manifest_cases if item.get("id") != regression_id]
     manifest_cases.append(entry)
@@ -190,6 +204,12 @@ def main() -> int:
         action="store_true",
         help="Overwrite an existing regression directory if the id already exists",
     )
+    parser.add_argument(
+        "--expectation-mode",
+        choices=("oracle", "observed_actual"),
+        default="oracle",
+        help="Whether the promoted case should compare against the oracle expectation or the observed actual result",
+    )
     args = parser.parse_args()
 
     try:
@@ -202,7 +222,15 @@ def main() -> int:
             suite_root = args.manifest.parent
             promoted = []
             for artifact_dir in args.artifact_dir:
-                promoted.append(_promote_artifact(artifact_dir, suite_root, cases, args.force))
+                promoted.append(
+                    _promote_artifact(
+                        artifact_dir,
+                        suite_root,
+                        cases,
+                        args.force,
+                        args.expectation_mode,
+                    )
+                )
             _write_manifest(args.manifest, manifest)
     except Exception as exc:
         print("error: {}".format(exc), file=sys.stderr)

@@ -1,0 +1,36 @@
+{
+  "acceptable_output_sets": [
+    [
+      "bf300962adaaf21b58cf043d91ff46661b2688eeaaf753fe6ee8b642de3b715f"
+    ]
+  ],
+  "case_format_version": 2,
+  "input_hash": "ea876d97952aaee5dd02c892a2ec6631790e7cdbbf84f9923e76a476ec7fa000",
+  "input_private_key_sum": "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb",
+  "input_pubkeys": [
+    "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+    "03557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+    "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+  ],
+  "kind": "send",
+  "notes": [],
+  "output_count_options": [
+    1
+  ],
+  "semantic_contract_version": 1,
+  "semantic_status": "ok",
+  "sender_shared_secrets": [
+    {
+      "scan_pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+      "shared_secret": "02d6a892554e0182fa4bd68409cb221dfe3ee51cb46dd1ea0c99c8a879f5fa385e"
+    }
+  ],
+  "source": {
+    "case_index": 25,
+    "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+    "entry_index": 0,
+    "id": "official_case_25_send_00__repeated_key_unique_outpoint",
+    "kind": "send",
+    "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+  }
+}

@@ -33,9 +33,10 @@ Current scripts:
 - `source_comment_discipline_smoke.py` exercises that comment-discipline gate on a clean and a flagged source sample.
 - `semantic_fuzz_minimizer.py` shrinks semantic fuzz failures while preserving the same failure signature.
 - `semantic_fuzz_minimizer_smoke.py` exercises the reducer against synthetic structured and raw failures.
+- `semantic_regressions_smoke.py` exercises request-backed regression replay, adapter scoping, and known-divergence tracking in isolation.
 - `package_ci_artifacts.py` tars CI reports and replay bundles so uploaded artifacts preserve executable replay scripts and directory structure.
-- `intake_semantic_regressions.py` promotes per-case failure artifacts into the tracked regression suite.
-- `run_semantic_regressions.py` replays the tracked regression suite through the same semantic compare engine.
+- `intake_semantic_regressions.py` promotes per-case failure artifacts into the tracked regression suite and can mark a promoted entry as `observed_actual` when a retained case is meant to track a known upstream divergence instead of matching the oracle.
+- `run_semantic_regressions.py` replays the tracked regression suite through the same semantic compare engine, now honoring exact `request.json` fixtures and adapter-scoped retained divergences.
 - `bip352_semantics.py` encodes official entries into v2 cases and derives normalized sender/receiver semantics from those v2 cases.
 - `run_bip352_reference_oracle.py` verifies the vendored upstream BIP352 reference bundle and runs it against the pinned official snapshot.
 - `bip352_external_probe.py` gathers live upstream version/test evidence for tracked external candidates, prefers exact resolved Rust dependency versions from `Cargo.lock` over manifest requirement strings when available, and emits data that `sp-differ status` can consume directly when the probe JSON lives under `build/`.
@@ -43,8 +44,13 @@ Current scripts:
 - `generate_bip352_v2_cases.py` generates the full official send/receive corpus in SP-DIFFER case format v2 with normalized semantic expectations.
 - `run_bip352_v2_oracle_cases.py` re-derives semantics from the generated v2 cases and compares them to the normalized expectations.
 - `run_semantic_adapter_cases.py` invokes a semantic adapter command or semantic worker shared library over the derived v2 corpus and compares the normalized result to the expected semantic contract.
-- `run_semantic_adapter_fuzz.py` runs deterministic structured fuzzing against semantic command adapters and now emits exact-request replay artifacts that `sp-differ replay` can execute directly.
-- `generate_semantic_fuzz_corpus.py` regenerates the checked-in semantic worker fuzz corpus from the derived v2 corpus and active regression manifest.
+- `run_semantic_adapter_fuzz.py` runs deterministic structured fuzzing against semantic command adapters, auto-minimizes mismatches, and emits intake-ready regression bundles for structured failures.
+- `semantic_adapter_fuzz_smoke.py` exercises adapter-fuzz minimization and promotable bundle generation in isolation.
+- `semantic_fuzz_introspector.py` reports heuristic semantic-path coverage and blind spots across the checked-in fuzz corpus.
+- `semantic_fuzz_introspector_smoke.py` exercises the introspection report against a tiny synthetic corpus.
+- `run_semantic_error_surfaces.py` validates the tracked reserved semantic-status fixtures, exercises the compiled compare path against them, and checks the reachable byte-worker defensive statuses directly through both published ABIs.
+- `semantic_error_surface_smoke.py` exercises that tracked error-surface lane end to end.
+- `generate_semantic_fuzz_corpus.py` regenerates the checked-in semantic worker fuzz corpus from the derived v2 corpus and active regression manifest, and it also injects a small deterministic coverage variant set for alternate networks, nonzero versions, and explicit input `pubkey` metadata.
 - `run_semantic_worker_fuzz.py` runs deterministic structured and raw-byte fuzzing against a semantic worker shared library, auto-minimizes failures, and writes replayable/promotable artifacts.
 - `generate_bip352_projected_cases.py` regenerates the sender-side official-vector subset that fits the current v1 case format.
 - `run_bip352_vector_smoke.py` runs the compiled runner against the derived official subset.
@@ -82,12 +88,14 @@ Make targets:
 - `.github/workflows/release.yml` is the tag-triggered packaging lane: it runs smoke plus native/reference fuzz gatekeeping first, then builds Linux x64/arm64 and macOS universal release archives.
 - `make fuzz-corpus` verifies the checked-in semantic worker fuzz corpus.
 - `make fuzz-minimizer-smoke` exercises the automatic reducer in isolation.
+- `make fuzz-introspect` writes the semantic fuzz introspection report under `build/`.
+- `make semantic-error-surfaces` writes a report for the reserved semantic-status error surface under `build/` without polluting the valid fuzz corpus.
 - `make fuzz-semantic-adapters` runs deterministic semantic-adapter fuzzing across the current adapter set.
 - `make fuzz-semantic-spdk`, `make fuzz-semantic-silent-payments`, `make fuzz-semantic-bip352`, and `make fuzz-semantic-go-bip352` run deterministic semantic-worker fuzzing with replayable artifacts.
 - `.github/workflows/ci.yml` now runs short deterministic semantic-worker fuzzing on normal CI and uploads tarred semantic/fuzz artifacts on failure.
-- `.github/workflows/nightly-fuzz.yml` runs longer scheduled semantic-worker fuzz jobs and always uploads tarred replay artifacts for triage.
+- `.github/workflows/nightly-fuzz.yml` runs longer scheduled semantic-worker and semantic-adapter fuzz jobs, uploads minimized replay bundles for triage, and publishes the semantic fuzz introspection report as a nightly artifact.
 - `sp-differ status --profile release --require-green` provides a single release-readiness check over the current build reports, and `sp-differ replay <artifact-dir>` replays saved failures without manually reconstructing commands.
 - Semantic adapter runs now write machine-readable JSON plus markdown summaries, and they can emit per-failure replay artifacts under `build/`.
-- Semantic worker fuzz failures now include reduced replay inputs under `minimized/`, and structured failures also emit a one-command promotion path into `tests/regressions/semantic/`.
+- Semantic adapter and semantic worker fuzz failures now include reduced replay inputs under `minimized/`, and structured failures also emit a one-command promotion path into `tests/regressions/semantic/`.
 - `make vectors` validates the vendored official vector snapshot, checks the generated derived subset, and runs that subset through both byte-worker libraries.
 - `make vectors-refresh` refreshes the vendored official vector snapshot and regenerates the derived subset.

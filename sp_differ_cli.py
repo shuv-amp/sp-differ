@@ -37,6 +37,9 @@ ADAPTER_REPORTS: Sequence[Tuple[str, str]] = (
     ("go-bip352-worker", "go_bip352_semantic_worker_report.json"),
     ("bdk-sp-adapter", "bdk_sp_semantic_adapter_report.json"),
 )
+ERROR_SURFACE_REPORTS: Sequence[Tuple[str, str]] = (
+    ("semantic-error-surfaces", "semantic_error_surface_report.json"),
+)
 REGRESSION_REPORTS: Sequence[Tuple[str, str]] = (
     ("reference-regressions", "semantic_regressions_reference.json"),
     ("spdk-regressions", "semantic_regressions_spdk_rust.json"),
@@ -316,6 +319,7 @@ def build_release_readiness_report(
     section_specs: List[Tuple[str, Sequence[Tuple[str, str]]]] = [
         ("oracle", ORACLE_REPORTS),
         ("adapters", ADAPTER_REPORTS),
+        ("error_surfaces", ERROR_SURFACE_REPORTS),
         ("regressions", REGRESSION_REPORTS),
     ]
     if profile == "release":
