@@ -556,7 +556,7 @@ func buildScanGroups(groups []RecipientGroupRequest) ([]scanGroup, error) {
 			ordered = append(ordered, scanGroup{
 				scanPubkeyHex: group.ScanPubkey,
 				scanPubkey:    scanPubkey,
-				spendPubkeys:  make([][33]byte, 0, boundedRecipientCapacity(group.Count)),
+				spendPubkeys:  make([][33]byte, 0),
 			})
 			indexByScan[group.ScanPubkey] = index
 		}
@@ -571,13 +571,6 @@ func buildScanGroups(groups []RecipientGroupRequest) ([]scanGroup, error) {
 		}
 	}
 	return ordered, nil
-}
-
-func boundedRecipientCapacity(count uint16) int {
-	if int(count) > kMax {
-		return kMax
-	}
-	return int(count)
 }
 
 func buildEmptySharedSecrets(groups []scanGroup) []SharedSecretEntry {
