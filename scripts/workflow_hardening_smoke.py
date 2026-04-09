@@ -24,7 +24,11 @@ def _run(*paths):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="sp_differ_workflow_hardening_") as temp_dir:
+    temp_root = ROOT / ".tmp_smoke"
+    temp_root.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="sp_differ_workflow_hardening_", dir=temp_root
+    ) as temp_dir:
         root = Path(temp_dir)
         good = root / "good.yml"
         bad = root / "bad.yml"

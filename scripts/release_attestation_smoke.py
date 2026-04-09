@@ -17,7 +17,7 @@ RUNNER = ROOT / "scripts" / "verify_release_attestation.py"
 def main():
     with tempfile.TemporaryDirectory(prefix="sp_differ_release_attestation_") as temp_dir:
         root = Path(temp_dir)
-        fake_gh = root / "fake-gh"
+        fake_gh = root / "gh"
         log_path = root / "gh.log"
         artifact_path = root / "sp-differ-v1.0.0-linux-x64.tar.gz"
         artifact_path.write_bytes(b"test-archive")
@@ -31,13 +31,12 @@ def main():
 
         env = dict(os.environ)
         env["SP_DIFFER_GH_LOG"] = str(log_path)
+        env["PATH"] = "{}:{}".format(root, env.get("PATH", ""))
         result = subprocess.run(
             [
                 sys.executable,
                 str(RUNNER),
                 str(artifact_path),
-                "--gh",
-                str(fake_gh),
                 "--repo",
                 "shuv-amp/sp-differ",
                 "--source-ref",
@@ -57,7 +56,7 @@ def main():
         expected = [
             "attestation",
             "verify",
-            str(artifact_path),
+            str(artifact_path.resolve()),
             "--repo",
             "shuv-amp/sp-differ",
             "--signer-workflow",

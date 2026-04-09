@@ -3,10 +3,13 @@
 """Check GitHub Actions workflows for pinned actions and top-level hardening defaults."""
 
 import argparse
+import os
 import re
 from pathlib import Path
 
 
+ROOT = Path(__file__).resolve().parents[1]
+ROOT_STR = str(ROOT)
 DEFAULT_TARGETS = [".github/workflows"]
 WORKFLOW_SUFFIXES = {".yml", ".yaml"}
 FULL_SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
@@ -17,7 +20,7 @@ BLOCK_KEY_PATTERN = r"^\s+{}:\s*(.*?)\s*(?:#.*)?$"
 
 def _iter_files(targets):
     for raw_target in targets:
-        path = Path(raw_target)
+        path = _resolve_repo_path(raw_target)
         if not path.exists():
             raise FileNotFoundError("missing path: {}".format(path))
         if path.is_dir():
@@ -26,6 +29,20 @@ def _iter_files(targets):
                     yield child
         elif path.is_file() and path.suffix in WORKFLOW_SUFFIXES:
             yield path
+
+
+def _resolve_repo_path(raw_target):
+    candidate = Path(raw_target)
+    if not candidate.is_absolute():
+        candidate = ROOT / candidate
+    resolved = Path(os.path.realpath(candidate))
+    try:
+        common = os.path.commonpath([ROOT_STR, str(resolved)])
+    except ValueError as exc:
+        raise ValueError("path escapes repository root: {}".format(raw_target)) from exc
+    if common != ROOT_STR:
+        raise ValueError("path escapes repository root: {}".format(raw_target))
+    return resolved
 
 
 def _collect_top_level_block(lines, key):
