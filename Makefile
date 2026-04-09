@@ -417,12 +417,12 @@ check-workflows:
 	$(PYTHON) scripts/check_workflow_hardening.py
 
 check-abi-symbols: worker worker-rust semantic-worker-libs
-	$(PYTHON) scripts/check_exported_symbols.py --library "$(WORKER_LIB)" --symbol sp_differ_worker_api_version --symbol sp_differ_worker_run --symbol sp_differ_worker_free
-	$(PYTHON) scripts/check_exported_symbols.py --library "$(RUST_LIB_DST)" --symbol sp_differ_worker_api_version --symbol sp_differ_worker_run --symbol sp_differ_worker_free
-	$(PYTHON) scripts/check_exported_symbols.py --library "$(SPDK_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
-	$(PYTHON) scripts/check_exported_symbols.py --library "$(SILENT_PAYMENTS_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
-	$(PYTHON) scripts/check_exported_symbols.py --library "$(BIP352_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
-	$(PYTHON) scripts/check_exported_symbols.py --library "$(GO_BIP352_SEMANTIC_LIB)" --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --target cpp-worker --symbol sp_differ_worker_api_version --symbol sp_differ_worker_run --symbol sp_differ_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --target rust-worker --symbol sp_differ_worker_api_version --symbol sp_differ_worker_run --symbol sp_differ_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --target spdk-semantic --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --target silent-payments-semantic --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --target bip352-semantic --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
+	$(PYTHON) scripts/check_exported_symbols.py --target go-bip352-semantic --symbol sp_differ_semantic_worker_api_version --symbol sp_differ_semantic_worker_run --symbol sp_differ_semantic_worker_free
 
 check-scripts:
 	$(PYTHON) scripts/parse_case.py tests/vectors/example.hex
