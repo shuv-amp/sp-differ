@@ -94,6 +94,7 @@ type scanGroup struct {
 	scanPubkeyHex string
 	scanPubkey    [33]byte
 	spendPubkeys  [][33]byte
+	limitExceeded bool
 }
 
 type eligibleSendInput struct {
@@ -555,15 +556,28 @@ func buildScanGroups(groups []RecipientGroupRequest) ([]scanGroup, error) {
 			ordered = append(ordered, scanGroup{
 				scanPubkeyHex: group.ScanPubkey,
 				scanPubkey:    scanPubkey,
-				spendPubkeys:  make([][33]byte, 0, group.Count),
+				spendPubkeys:  make([][33]byte, 0, boundedRecipientCapacity(group.Count)),
 			})
 			indexByScan[group.ScanPubkey] = index
 		}
-		for i := 0; i < int(group.Count); i++ {
+		remaining := kMax - len(ordered[index].spendPubkeys)
+		appendCount := int(group.Count)
+		if appendCount > remaining {
+			appendCount = remaining
+			ordered[index].limitExceeded = true
+		}
+		for i := 0; i < appendCount; i++ {
 			ordered[index].spendPubkeys = append(ordered[index].spendPubkeys, spendPubkey)
 		}
 	}
 	return ordered, nil
+}
+
+func boundedRecipientCapacity(count uint16) int {
+	if int(count) > kMax {
+		return kMax
+	}
+	return int(count)
 }
 
 func buildEmptySharedSecrets(groups []scanGroup) []SharedSecretEntry {
@@ -882,6 +896,9 @@ func sumInputSecretKeys(inputs []eligibleSendInput) ([32]byte, error) {
 func scanGroupRecipientLimitExceeded(groups []scanGroup) bool {
 	counts := make(map[string]int)
 	for _, group := range groups {
+		if group.limitExceeded {
+			return true
+		}
 		counts[group.scanPubkeyHex] += len(group.spendPubkeys)
 		if counts[group.scanPubkeyHex] > kMax {
 			return true

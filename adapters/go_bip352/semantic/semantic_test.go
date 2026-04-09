@@ -95,3 +95,40 @@ func TestReceiveRejectsMissingWitnessPubkey(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestSendRejectsRecipientGroupsBeyondKMax(t *testing.T) {
+	payload, err := os.ReadFile(fixturePath("send_input_hash_uses_privkey_sum.request.json"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	var request map[string]any
+	if err := json.Unmarshal(payload, &request); err != nil {
+		t.Fatalf("decode request: %v", err)
+	}
+	request["recipient_groups"] = []map[string]any{
+		{
+			"count":        float64(kMax + 1),
+			"scan_pubkey":  "02062d49ffc02787d586c608dfbec184aa91a6597d97b463ea5c6babd9d17a95a3",
+			"spend_pubkey": "0381eb9a9a9ec739d527c1631b31b421566f5c2a47b4ab5b1f6a686dfb68eab716",
+		},
+	}
+	payload, err = json.Marshal(request)
+	if err != nil {
+		t.Fatalf("marshal request: %v", err)
+	}
+	response, err := RunRequestJSON(string(payload))
+	if err != nil {
+		t.Fatalf("run request: %v", err)
+	}
+	var value map[string]any
+	if err := json.Unmarshal([]byte(response), &value); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if value["semantic_status"] != "recipient_limit_exceeded" {
+		t.Fatalf("unexpected semantic_status: %v", value["semantic_status"])
+	}
+	notes, ok := value["notes"].([]any)
+	if !ok || len(notes) != 1 || notes[0] != "per_group_recipient_limit_exceeded" {
+		t.Fatalf("unexpected notes: %#v", value["notes"])
+	}
+}
