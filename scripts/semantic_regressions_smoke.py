@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "scripts" / "run_semantic_regressions.py"
+REAL_MANIFEST = ROOT / "tests" / "regressions" / "semantic" / "manifest.json"
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -168,6 +169,25 @@ def _run(manifest: Path, adapter_name: str, adapter_path: Path, mode: str, out_d
 
 
 def main() -> int:
+    real_manifest = json.loads(REAL_MANIFEST.read_text(encoding="utf-8"))
+    real_cases = real_manifest.get("cases", [])
+    global_repeated_key = [
+        item
+        for item in real_cases
+        if item.get("id") == "official_case_25_send_00__repeated_key_unique_outpoint"
+    ]
+    _require(len(global_repeated_key) == 1, "expected one global repeated-key regression entry")
+    _require(
+        global_repeated_key[0].get("adapter_names")
+        == [
+            "reference",
+            "go-bip352",
+            "go-bip352-ffi",
+            "bitcoin-core-exp",
+        ],
+        "expected repeated-key oracle case to stay scoped to the known passing adapters",
+    )
+
     with tempfile.TemporaryDirectory(prefix="sp_differ_semantic_regressions_") as tmp:
         tmp_root = Path(tmp)
         manifest = tmp_root / "tests" / "regressions" / "semantic" / "manifest.json"
