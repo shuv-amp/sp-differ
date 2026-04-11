@@ -73,6 +73,10 @@ sp-differ status --profile release --require-green
 - Run the third independent `bip352` semantic worker against the full v2 corpus: `make adapter-bip352-ffi`
 - Run the fourth independent `go-bip352` adapter against the full v2 corpus: `make adapter-go-bip352`
 - Run the fourth independent `go-bip352` semantic worker against the full v2 corpus: `make adapter-go-bip352-ffi`
+- Build and run the opt-in experimental Bitcoin Core adapter against a local Silent Payments checkout: `make adapter-bitcoin-core-exp BITCOIN_CORE_ROOT=/path/to/bitcoin`
+- Replay tracked regressions through that same experimental adapter: `make regressions-bitcoin-core-exp BITCOIN_CORE_ROOT=/path/to/bitcoin`
+- Run deterministic adapter fuzzing against that local Bitcoin Core branch: `make fuzz-semantic-bitcoin-core-exp-adapter BITCOIN_CORE_ROOT=/path/to/bitcoin`
+- Benchmark that local Bitcoin Core branch against the pinned corpus: `make bench-bitcoin-core-exp BITCOIN_CORE_ROOT=/path/to/bitcoin`
 - Run the tracked semantic regression suite against the green adapters: `make regressions`
 - Check the semantic worker fuzz corpus: `make fuzz-corpus`
 - Exercise the fuzz minimizer in isolation: `make fuzz-minimizer-smoke`
@@ -103,6 +107,7 @@ sp-differ status --profile release --require-green
 - `make oracle` verifies the vendored upstream reference bundle checksums and runs the exact upstream BIP352 reference implementation against the pinned official snapshot.
 - `make vectors-v2` verifies that the full official send/receive surface projects into case format v2 and that the v2 oracle runner matches the normalized semantic expectations.
 - `make adapters` drives the same v2 corpus through the in-tree reference adapter, the SPDK command adapter, the SPDK semantic worker shared library, the independent `silent-payments` implementation in both command and semantic-worker forms, the independent `bip352` implementation in both forms, the external Go-backed `go-bip352` implementation in both forms, and the `bdk-sp` semantic adapter.
+- The experimental Bitcoin Core adapter lives under `adapters/bitcoin_core_exp/` and is intentionally opt-in: it builds a repo-owned helper against a user-supplied checkout with `scripts/build_bitcoin_core_helper.py`, is excluded from `make adapters`, CI, and release gating, and currently serves maintainer research rather than a green baseline. As of April 11, 2026, the current `bitcoin/bitcoin#28201` draft head `db58cb7cb228ad6a88de29ea2b11a9ee1ce03368` still lands at `54/55` official derived cases, with only `official_case_26_receive_00` differing.
 - The historical `silent-payments` send mismatch was a wrapper bug: the adapter filtered out ineligible inputs before sender construction, which changed the lexicographically smallest serialized outpoint used by the upstream sender.
 - Longer deterministic fuzzing also flushed out two smaller wrapper-level bugs that are now covered by unit tests: send-side `input_hash` must use `a_sum * G` rather than extracted input pubkeys, and the `bip352` receive path must only validate output pubkeys when scanning is actually reached so point-at-infinity short-circuits still match the oracle.
 - The `go-bip352` wrapper also needed one normalization-layer fix before it was promoted into the green set: the official count-only `K_max` receive case must stop at `2323` matches even though the upstream library can continue scanning the 2,324th match.
@@ -116,6 +121,7 @@ sp-differ status --profile release --require-green
 - `sp_differ_cli.py` is the public repo-local entrypoint: it wraps canonical verification profiles, writes release-readiness summaries, and can replay saved failure artifacts without making users remember the individual helper scripts.
 - `sp_differ_cli.py verify --refresh-external-probe` is the networked sign-off variant: when external-probe candidate metadata is present, it reruns the external BIP352 probe before producing the final release verdict. Without that metadata it still produces the live readiness report and notes that upstream freshness was not evaluated.
 - When `build/bip352_external_probe.json` exists, the same CLI status/report path also folds in the live integrated-adapter freshness probe and marks the report failed or incomplete on stale, failed, or partial external evidence.
+- If experimental Bitcoin Core reports such as `build/bitcoin_core_exp_semantic_adapter_report.json` exist, the CLI also shows them in a non-gating experimental section. Those reports are informational only and do not change `overall_status` or `release_ready`.
 - The CLI packaging path is verified through `python3 -m pip install --editable .`, and the installed `sp-differ` console entrypoint now works against the current repo checkout.
 - `.github/workflows/ci.yml` currently runs the regular Ubuntu `Build, Test, and Smoke` lane on pushes and pull requests targeting `main`.
 - `.github/workflows/nightly-fuzz.yml` carries the longer scheduled semantic-worker and semantic-adapter fuzz jobs plus the semantic fuzz introspection report, while `.github/workflows/maturity.yml` carries scheduled live release verification, benchmark runs, and release-evidence artifact generation.

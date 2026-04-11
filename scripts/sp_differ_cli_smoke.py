@@ -508,6 +508,31 @@ def main_smoke() -> int:
             "expected tracked regression manifest count",
         )
 
+        experimental_failed_report = _seed_report(
+            "bitcoin_core_exp_semantic_adapter_report.json", snapshot, upstream
+        )
+        experimental_failed_report["status"] = "failed"
+        experimental_failed_report["passed_case_count"] = 54
+        experimental_failed_report["failed_case_count"] = 1
+        _write_json(
+            build_dir / "bitcoin_core_exp_semantic_adapter_report.json",
+            experimental_failed_report,
+        )
+        report_with_experimental = cli.build_release_readiness_report(build_dir, manifest)
+        _require(
+            report_with_experimental["overall_status"] == "passed",
+            "expected experimental failures to stay non-gating",
+        )
+        _require(
+            "experimental" in report_with_experimental["sections"],
+            "expected experimental section when Bitcoin Core evidence exists",
+        )
+        _require(
+            report_with_experimental["sections"]["experimental"]["failed_reports"]
+            == ["bitcoin-core-exp-adapter"],
+            "expected experimental failure to stay isolated in the experimental section",
+        )
+
         json_out = build_dir / "readiness.json"
         markdown_out = build_dir / "readiness.md"
         rc = cli.main(

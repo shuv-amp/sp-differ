@@ -155,6 +155,9 @@ else
   GO_BIP352_ADAPTER_BIN := $(BUILD_DIR)/sp-differ-semantic-adapter-go-bip352
   GO_BIP352_SEMANTIC_LIB := $(BUILD_DIR)/libsp_differ_semantic_worker_go_bip352.$(LIB_EXT)
 endif
+BITCOIN_CORE_ROOT ?=
+BITCOIN_CORE_BUILD_DIR ?=
+BITCOIN_CORE_HELPER ?= $(BUILD_DIR)/bitcoin_core_exp/bitcoin_sp_semantic_helper
 FUZZ_SEED ?= 352
 FUZZ_STRUCTURED_ITERATIONS ?= 8
 FUZZ_RAW_ITERATIONS ?= 8
@@ -240,6 +243,7 @@ endif
 .PHONY: adapter-go-bip352
 .PHONY: adapter-go-bip352-ffi
 .PHONY: adapter-bdk-sp
+.PHONY: adapter-bitcoin-core-exp
 .PHONY: regressions
 .PHONY: regressions-reference
 .PHONY: regressions-spdk
@@ -251,6 +255,7 @@ endif
 .PHONY: regressions-go-bip352
 .PHONY: regressions-go-bip352-ffi
 .PHONY: regressions-bdk-sp
+.PHONY: regressions-bitcoin-core-exp
 .PHONY: fuzz-corpus
 .PHONY: fuzz-harness
 .PHONY: fuzz-driver
@@ -263,6 +268,7 @@ endif
 .PHONY: fuzz-semantic-bip352
 .PHONY: fuzz-semantic-go-bip352
 .PHONY: fuzz-semantic-bdk-sp
+.PHONY: fuzz-semantic-bitcoin-core-exp-adapter
 .PHONY: fuzz-semantic-workers
 .PHONY: fuzz-semantic-adapters
 .PHONY: semantic-worker-libs
@@ -276,6 +282,7 @@ endif
 .PHONY: bench-go-bip352
 .PHONY: bench-go-bip352-ffi
 .PHONY: bench-bdk-sp
+.PHONY: bench-bitcoin-core-exp
 .PHONY: bench-scan-native
 .PHONY: bench-adapters
 .PHONY: bench-summary
@@ -297,6 +304,7 @@ endif
 .PHONY: verify-release-live
 .PHONY: verify-release-attestation
 .PHONY: verify-quick
+.PHONY: bitcoin-core-exp-helper
 .PHONY: FORCE
 
 worker: $(WORKER_LIB)
@@ -432,7 +440,7 @@ check-scripts:
 	$(PYTHON) scripts/parse_case.py tests/vectors/example_v2.hex
 	$(PYTHON) scripts/validate_output.py tests/vectors/output_ok.hex
 	$(PYTHON) scripts/runner_smoke.py tests/vectors/example.hex
-	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/check_workflow_hardening.py scripts/workflow_hardening_smoke.py scripts/check_exported_symbols.py scripts/run_clang_tidy.py scripts/clang_tidy_smoke.py scripts/verify_release_attestation.py scripts/release_attestation_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/semantic_regressions_smoke.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_adapter_fuzz_smoke.py scripts/semantic_fuzz_introspector.py scripts/semantic_fuzz_introspector_smoke.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py scripts/run_semantic_error_surfaces.py scripts/semantic_error_surface_smoke.py
+	$(PYTHON) -m py_compile sp_differ_cli.py scripts/check_claim_discipline.py scripts/claim_discipline_smoke.py scripts/check_source_comment_discipline.py scripts/source_comment_discipline_smoke.py scripts/check_workflow_hardening.py scripts/workflow_hardening_smoke.py scripts/check_exported_symbols.py scripts/run_clang_tidy.py scripts/clang_tidy_smoke.py scripts/verify_release_attestation.py scripts/release_attestation_smoke.py scripts/semantic_worker_ffi.py scripts/semantic_case_runner.py scripts/run_semantic_adapter_cases.py scripts/benchmark_semantic_adapter.py scripts/summarize_semantic_benchmarks.py scripts/semantic_benchmark_smoke.py scripts/generate_release_evidence_manifest.py scripts/release_evidence_smoke.py scripts/verify_release_evidence.py scripts/release_verification_smoke.py scripts/intake_semantic_regressions.py scripts/intake_semantic_regressions_smoke.py scripts/run_native_reference_fuzz.py scripts/run_semantic_regressions.py scripts/semantic_regressions_smoke.py scripts/generate_semantic_fuzz_corpus.py scripts/run_semantic_worker_fuzz.py scripts/run_semantic_adapter_fuzz.py scripts/semantic_adapter_fuzz_smoke.py scripts/semantic_fuzz_introspector.py scripts/semantic_fuzz_introspector_smoke.py scripts/semantic_fuzz_minimizer.py scripts/semantic_fuzz_minimizer_smoke.py scripts/package_ci_artifacts.py scripts/bip352_external_probe.py scripts/bip352_external_probe_smoke.py scripts/sp_differ_cli_smoke.py scripts/semantic_bridge.py scripts/semantic_runner_smoke.py scripts/run_semantic_error_surfaces.py scripts/semantic_error_surface_smoke.py scripts/build_bitcoin_core_helper.py scripts/build_bitcoin_core_helper_smoke.py scripts/bitcoin_core_exp_adapter_smoke.py
 	$(MAKE) check-claims PYTHON=$(PYTHON)
 	$(MAKE) check-comments PYTHON=$(PYTHON)
 	$(MAKE) check-workflows PYTHON=$(PYTHON)
@@ -449,6 +457,8 @@ check-scripts:
 	$(MAKE) semantic-error-surfaces
 	$(PYTHON) scripts/intake_semantic_regressions_smoke.py
 	$(PYTHON) scripts/semantic_regressions_smoke.py
+	$(PYTHON) scripts/build_bitcoin_core_helper_smoke.py
+	$(PYTHON) scripts/bitcoin_core_exp_adapter_smoke.py
 	$(PYTHON) scripts/bip352_external_probe_smoke.py
 	$(PYTHON) scripts/semantic_benchmark_smoke.py
 	$(PYTHON) scripts/release_evidence_smoke.py
@@ -507,6 +517,23 @@ adapter-bdk-sp: vectors-v2
 	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/bdk_sp_semantic_adapter_report.json --markdown-out build/bdk_sp_semantic_adapter_report.md --artifact-dir build/bdk_sp_semantic_adapter_artifacts
 
+bitcoin-core-exp-helper:
+	@if [ -n "$(BITCOIN_CORE_ROOT)" ]; then \
+		if [ -n "$(BITCOIN_CORE_BUILD_DIR)" ]; then \
+			$(PYTHON) scripts/build_bitcoin_core_helper.py --bitcoin-root "$(BITCOIN_CORE_ROOT)" --bitcoin-build-dir "$(BITCOIN_CORE_BUILD_DIR)" --out "$(BITCOIN_CORE_HELPER)"; \
+		else \
+			$(PYTHON) scripts/build_bitcoin_core_helper.py --bitcoin-root "$(BITCOIN_CORE_ROOT)" --out "$(BITCOIN_CORE_HELPER)"; \
+		fi; \
+	elif [ -f "$(BITCOIN_CORE_HELPER)" ]; then \
+		echo "using existing experimental Bitcoin Core helper: $(BITCOIN_CORE_HELPER)"; \
+	else \
+		echo "BITCOIN_CORE_ROOT is required unless BITCOIN_CORE_HELPER already points to an existing helper" >&2; \
+		exit 1; \
+	fi
+
+adapter-bitcoin-core-exp: vectors-v2 bitcoin-core-exp-helper
+	$(PYTHON) scripts/run_semantic_adapter_cases.py --adapter-name bitcoin-core-exp --adapter-cmd "$(PYTHON) adapters/bitcoin_core_exp/semantic_adapter.py --core-helper \"$(BITCOIN_CORE_HELPER)\"" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS) --json-out build/bitcoin_core_exp_semantic_adapter_report.json --markdown-out build/bitcoin_core_exp_semantic_adapter_report.md --artifact-dir build/bitcoin_core_exp_semantic_adapter_artifacts
+
 adapters: adapter-reference adapter-spdk adapter-spdk-ffi adapter-silent-payments adapter-silent-payments-ffi adapter-bip352 adapter-bip352-ffi adapter-go-bip352 adapter-go-bip352-ffi adapter-bdk-sp
 
 bench-reference: vectors-v2
@@ -551,6 +578,9 @@ bench-go-bip352-ffi: vectors-v2
 bench-bdk-sp: vectors-v2
 	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/bdk_sp_semantic_benchmark.json --markdown-out build/bdk_sp_semantic_benchmark.md
+
+bench-bitcoin-core-exp: vectors-v2 bitcoin-core-exp-helper
+	$(PYTHON) scripts/benchmark_semantic_adapter.py --adapter-name bitcoin-core-exp --adapter-cmd "$(PYTHON) adapters/bitcoin_core_exp/semantic_adapter.py --core-helper \"$(BITCOIN_CORE_HELPER)\"" --warmup-iterations $(BENCH_WARMUP) --iterations $(BENCH_ITERATIONS) --timeout-seconds $(BENCH_TIMEOUT_SECONDS) $(BENCH_KIND_ARG) $(BENCH_MAX_CASES_ARG) --json-out build/bitcoin_core_exp_semantic_benchmark.json --markdown-out build/bitcoin_core_exp_semantic_benchmark.md
 
 bench-summary:
 	$(PYTHON) scripts/summarize_semantic_benchmarks.py --json-out build/semantic_benchmark_summary.json --markdown-out build/semantic_benchmark_summary.md build/reference_semantic_benchmark.json build/spdk_semantic_benchmark.json build/spdk_semantic_worker_benchmark.json build/silent_payments_semantic_benchmark.json build/silent_payments_semantic_worker_benchmark.json build/bip352_semantic_benchmark.json build/bip352_semantic_worker_benchmark.json build/go_bip352_semantic_benchmark.json build/go_bip352_semantic_worker_benchmark.json build/bdk_sp_semantic_benchmark.json
@@ -602,6 +632,9 @@ regressions-go-bip352-ffi:
 regressions-bdk-sp:
 	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
+
+regressions-bitcoin-core-exp: bitcoin-core-exp-helper
+	$(PYTHON) scripts/run_semantic_regressions.py --adapter-name bitcoin-core-exp --adapter-cmd "$(PYTHON) adapters/bitcoin_core_exp/semantic_adapter.py --core-helper \"$(BITCOIN_CORE_HELPER)\"" --timeout-seconds $(SEMANTIC_TIMEOUT_SECONDS)
 
 regressions: regressions-reference regressions-spdk regressions-spdk-ffi regressions-silent-payments regressions-silent-payments-ffi regressions-bip352 regressions-bip352-ffi regressions-go-bip352 regressions-go-bip352-ffi regressions-bdk-sp
 
@@ -676,6 +709,9 @@ fuzz-semantic-go-bip352-adapter: fuzz-corpus
 fuzz-semantic-bdk-sp: fuzz-corpus
 	$(CARGO) build $(CARGO_LOCKED_ARGS) --manifest-path adapters/bdk_sp_rust/Cargo.toml
 	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name bdk-sp --adapter-cmd "./adapters/bdk_sp_rust/target/debug/sp-differ-semantic-adapter-bdk-sp" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/bdk_sp_semantic_adapter_fuzz_report.json --markdown-out build/bdk_sp_semantic_adapter_fuzz_report.md --artifact-dir build/bdk_sp_semantic_adapter_fuzz_artifacts
+
+fuzz-semantic-bitcoin-core-exp-adapter: fuzz-corpus bitcoin-core-exp-helper
+	$(PYTHON) scripts/run_semantic_adapter_fuzz.py --adapter-name bitcoin-core-exp --adapter-cmd "$(PYTHON) adapters/bitcoin_core_exp/semantic_adapter.py --core-helper \"$(BITCOIN_CORE_HELPER)\"" --seed $(FUZZ_SEED) --iterations $(FUZZ_STRUCTURED_ITERATIONS) --json-out build/bitcoin_core_exp_semantic_adapter_fuzz_report.json --markdown-out build/bitcoin_core_exp_semantic_adapter_fuzz_report.md --artifact-dir build/bitcoin_core_exp_semantic_adapter_fuzz_artifacts
 
 fuzz-semantic-workers: fuzz-semantic-spdk fuzz-semantic-silent-payments fuzz-semantic-bip352 fuzz-semantic-go-bip352
 
