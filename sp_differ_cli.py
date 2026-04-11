@@ -69,6 +69,12 @@ ADAPTER_FUZZ_REPORTS: Sequence[Tuple[str, str]] = (
     ("go-bip352-adapter-fuzz", "go_bip352_semantic_adapter_fuzz_report.json"),
     ("bdk-sp-adapter-fuzz", "bdk_sp_semantic_adapter_fuzz_report.json"),
 )
+EXPERIMENTAL_REPORTS: Sequence[Tuple[str, str]] = (
+    ("bitcoin-core-exp-adapter", "bitcoin_core_exp_semantic_adapter_report.json"),
+    ("bitcoin-core-exp-regressions", "semantic_regressions_bitcoin_core_exp.json"),
+    ("bitcoin-core-exp-adapter-fuzz", "bitcoin_core_exp_semantic_adapter_fuzz_report.json"),
+    ("bitcoin-core-exp-benchmark", "bitcoin_core_exp_semantic_benchmark.json"),
+)
 EXTERNAL_PROBE_CANDIDATES: Sequence[Tuple[str, str]] = (
     ("spdk-rust", "SPDK adapter (silentpayments crate)"),
     ("silent-payments", "silent-payments crate adapter"),
@@ -144,6 +150,22 @@ def _collect_section(
         elif item["status"] != "passed":
             failed.append(label)
     return items, missing, failed
+
+
+def _collect_optional_section(
+    build_dir: Path, specs: Sequence[Tuple[str, str]]
+) -> Tuple[List[Dict[str, Any]], List[str]]:
+    items: List[Dict[str, Any]] = []
+    failed: List[str] = []
+    for label, filename in specs:
+        path = build_dir / filename
+        if not path.exists():
+            continue
+        item = _load_report_item(build_dir, label, filename)
+        items.append(item)
+        if item["status"] != "passed":
+            failed.append(label)
+    return items, failed
 
 
 def _tracked_regression_case_count(manifest_path: Path) -> Optional[int]:
@@ -352,6 +374,18 @@ def build_release_readiness_report(
         missing_reports.extend(external_section["missing_reports"])
         failed_reports.extend(external_section["failed_reports"])
 
+    experimental_items, experimental_failed = _collect_optional_section(
+        build_dir, EXPERIMENTAL_REPORTS
+    )
+    if experimental_items:
+        sections["experimental"] = {
+            "expected_report_count": len(experimental_items),
+            "items": experimental_items,
+            "missing_reports": [],
+            "failed_reports": experimental_failed,
+            "gating": False,
+        }
+
     snapshot_values = sorted(
         {
             item["snapshot_sha256"]
@@ -398,6 +432,10 @@ def build_release_readiness_report(
         "This report summarizes currently materialized local evidence under build/; longer nightly soak confidence still depends on elapsed scheduled runs."
     ]
     notes.extend(external_notes)
+    if experimental_items:
+        notes.append(
+            "Experimental adapter evidence is informational only and does not affect overall_status or release_ready."
+        )
     if regression_case_count == 0:
         notes.append("Tracked semantic regression manifest is currently empty.")
 

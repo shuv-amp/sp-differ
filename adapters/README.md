@@ -18,5 +18,6 @@ Current adapters:
 - `bip352_rust/`: third independent Rust adapter backed by the public `bip352` crate, exposed both as a command adapter and as a semantic worker shared library
 - `go_bip352/`: fourth independent adapter backed by the public Go `go-bip352` module, exposed both as a command adapter and as a semantic worker shared library
 - `bdk_sp_rust/`: optional Rust adapter backed by the public `bdk_sp` crate from the BDK workspace, exposed as a command adapter for semantic corpus and regression runs
+- `bitcoin_core_exp/`: opt-in experimental command adapter for local Bitcoin Core Silent Payments branches, backed by a repo-owned helper compiled against a user-supplied checkout and intentionally excluded from default `make adapters`, CI, and release-readiness gating
 
 The generic runner is `python3 scripts/run_semantic_adapter_cases.py`.

@@ -79,6 +79,16 @@ make bench-adapters BENCH_ITERATIONS=3 BENCH_WARMUP=1
 make bench-scan-native BENCH_SCAN_BLOCKS=1000 BENCH_SCAN_DENSITY=all
 ```
 
+For opt-in local research against an active Bitcoin Core Silent Payments branch:
+
+```bash
+make adapter-bitcoin-core-exp BITCOIN_CORE_ROOT=/path/to/bitcoin
+make regressions-bitcoin-core-exp BITCOIN_CORE_ROOT=/path/to/bitcoin
+make fuzz-semantic-bitcoin-core-exp-adapter BITCOIN_CORE_ROOT=/path/to/bitcoin FUZZ_STRUCTURED_ITERATIONS=16
+```
+
+Those targets are intentionally experimental. They are not part of default `make adapters`, CI, or release-readiness gating.
+
 For the local release sign-off lane:
 
 ```bash
@@ -209,6 +219,7 @@ If you use this repository in reports or tooling, please cite both SP-DIFFER and
 - Native compiled runner, comparator, CLI, and reporter in `src/`.
 - Native C++ and Rust worker libraries behind stable ABI headers in `ffi/`.
 - Differential adapter coverage for reference, Rust, Go, and `bdk-sp` integrations.
+- Opt-in experimental Bitcoin Core adapter coverage for local Silent Payments branches via a repo-owned helper build.
 - Deterministic regression, fuzz, benchmark, and release-verification lanes wired through `Makefile`.
 - Signed release packaging instructions and public verification material in `SIGNING.md` and `KEYS`.
 

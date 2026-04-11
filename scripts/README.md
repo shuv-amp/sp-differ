@@ -44,6 +44,9 @@ Current scripts:
 - `generate_bip352_v2_cases.py` generates the full official send/receive corpus in SP-DIFFER case format v2 with normalized semantic expectations.
 - `run_bip352_v2_oracle_cases.py` re-derives semantics from the generated v2 cases and compares them to the normalized expectations.
 - `run_semantic_adapter_cases.py` invokes a semantic adapter command or semantic worker shared library over the derived v2 corpus and compares the normalized result to the expected semantic contract.
+- `build_bitcoin_core_helper.py` compiles the repo-owned Bitcoin Core experimental helper against a local Silent Payments-capable checkout and can also print a dry-run build plan for smoke testing.
+- `build_bitcoin_core_helper_smoke.py` exercises missing-checkout, missing-header, and dry-run planning paths for that builder.
+- `bitcoin_core_exp_adapter_smoke.py` exercises the experimental Bitcoin Core adapter wrapper against a fake helper covering send, receive, semantic-error, and malformed-helper-json paths.
 - `run_semantic_adapter_fuzz.py` runs deterministic structured fuzzing against semantic command adapters, auto-minimizes mismatches, and emits intake-ready regression bundles for structured failures.
 - `semantic_adapter_fuzz_smoke.py` exercises adapter-fuzz minimization and promotable bundle generation in isolation.
 - `semantic_fuzz_introspector.py` reports heuristic semantic-path coverage and blind spots across the checked-in fuzz corpus.
@@ -82,6 +85,7 @@ Make targets:
 - `make adapter-silent-payments` and `make adapter-silent-payments-ffi` run the second independent Rust implementation against the official corpus.
 - `make adapter-bip352` and `make adapter-bip352-ffi` run the third independent Rust implementation against the official corpus.
 - `make adapter-go-bip352` and `make adapter-go-bip352-ffi` run the fourth independent implementation, backed by the public Go `go-bip352` module, against the official corpus.
+- `make adapter-bitcoin-core-exp`, `make regressions-bitcoin-core-exp`, `make fuzz-semantic-bitcoin-core-exp-adapter`, and `make bench-bitcoin-core-exp` are opt-in maintainer targets for the experimental Bitcoin Core adapter. They require `BITCOIN_CORE_ROOT=/path/to/bitcoin` unless `BITCOIN_CORE_HELPER` already points at a built helper.
 - `make regressions` replays the tracked semantic regression suite against all current known-good adapters.
 - Benchmark reports are intentionally lab-scoped: command-adapter timings include startup/bridge cost, worker-library timings include the semantic worker FFI bridge, and summaries refuse to compare mismatched corpus selections.
 - Release evidence is intentionally explicit: a public release should point at `build/release_evidence_manifest.json` and a signed tag, not only a pasted console summary.
@@ -95,6 +99,7 @@ Make targets:
 - `.github/workflows/ci.yml` now runs short deterministic semantic-worker fuzzing on normal CI and uploads tarred semantic/fuzz artifacts on failure.
 - `.github/workflows/nightly-fuzz.yml` runs longer scheduled semantic-worker and semantic-adapter fuzz jobs, uploads minimized replay bundles for triage, and publishes the semantic fuzz introspection report as a nightly artifact.
 - `sp-differ status --profile release --require-green` provides a single release-readiness check over the current build reports, and `sp-differ replay <artifact-dir>` replays saved failures without manually reconstructing commands.
+- Experimental Bitcoin Core reports shown by `sp-differ status` are informational only and do not affect `overall_status` or release gating.
 - Semantic adapter runs now write machine-readable JSON plus markdown summaries, and they can emit per-failure replay artifacts under `build/`.
 - Semantic adapter and semantic worker fuzz failures now include reduced replay inputs under `minimized/`, and structured failures also emit a one-command promotion path into `tests/regressions/semantic/`.
 - `make vectors` validates the vendored official vector snapshot, checks the generated derived subset, and runs that subset through both byte-worker libraries.
