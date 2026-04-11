@@ -23,6 +23,13 @@ Request-backed divergences preserve:
 - the targeted adapter's `observed_actual.json`
 - a stable `expectation_mode: observed_actual` manifest entry so the regression lane stays green while the upstream bug still reproduces and flips red once the adapter changes behavior
 
+Some retained edge cases intentionally appear twice:
+
+- once as a normal oracle-expected regression entry scoped to the adapters that are currently expected to pass it
+- again as adapter-scoped `observed_actual` entries for implementations with a known upstream bug
+
+That pattern lets the general regression story stay mathematically correct while still tracking a known divergence until upstream behavior changes.
+
 The manifest at `tests/regressions/semantic/manifest.json` is intentionally compatible with `scripts/run_semantic_adapter_cases.py`, so the regression suite can reuse the same compare engine as the main official-vector flow. The manifest is the source of truth for active regressions; it may legitimately be empty when all known-good adapters are green.
 
 Manifest notes:

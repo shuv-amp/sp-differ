@@ -55,6 +55,27 @@
       "source_case_id": "official_case_11_send_00"
     },
     {
+      "adapter_names": [
+        "reference",
+        "go-bip352",
+        "go-bip352-ffi",
+        "bitcoin-core-exp"
+      ],
+      "expectation_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint/expected.json",
+      "id": "official_case_25_send_00__repeated_key_unique_outpoint",
+      "kind": "send",
+      "request_path": "cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json",
+      "source": {
+        "case_index": 25,
+        "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+        "entry_index": 0,
+        "id": "official_case_25_send_00__repeated_key_unique_outpoint",
+        "kind": "send",
+        "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8"
+      },
+      "source_case_id": "official_case_25_send_00"
+    },
+    {
       "adapter_name": "silent-payments",
       "errors": [
         "actual acceptable_output_sets not accepted by expected contract"
