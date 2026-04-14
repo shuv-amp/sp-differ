@@ -748,23 +748,19 @@ fn sum_input_secret_keys(
     if input_keys.is_empty() {
         return Err("no_eligible_inputs".to_owned());
     }
-    let mut normalized = Vec::with_capacity(input_keys.len());
+    let mut acc: Option<SecretKey> = None;
     for (key, is_taproot) in input_keys {
-        let (_, parity) = key.x_only_public_key(secp);
-        if *is_taproot && parity == Parity::Odd {
-            normalized.push(key.negate());
+        let normalized = if *is_taproot && key.x_only_public_key(secp).1 == Parity::Odd {
+            key.negate()
         } else {
-            normalized.push(*key);
-        }
+            *key
+        };
+        acc = match acc {
+            Some(current) => current.add_tweak(&Scalar::from(normalized)).ok(),
+            None => Some(normalized),
+        };
     }
-    let mut iter = normalized.into_iter();
-    let mut acc = iter.next().ok_or_else(|| "no_eligible_inputs".to_owned())?;
-    for key in iter {
-        acc = acc
-            .add_tweak(&Scalar::from(key))
-            .map_err(|_| "zero_scalar".to_owned())?;
-    }
-    Ok(acc)
+    acc.ok_or_else(|| "zero_scalar".to_owned())
 }
 
 fn combine_scalars(terms: &[Scalar]) -> Result<Scalar> {
@@ -873,6 +869,97 @@ mod tests {
             Value::String(
                 "02c8f4ce9acc0685424176e150b74244699304f994be15f4d41f49a6c1319826fe".to_owned()
             ),
+        );
+    }
+
+    #[test]
+    fn send_repeated_key_unique_outpoint_succeeds() {
+        let request = serde_json::json!({
+            "semantic_adapter_request_version": 1,
+            "case_format_version": 2,
+            "kind": "send",
+            "network": "mainnet",
+            "silent_payment_version": 0,
+            "source": {
+                "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8",
+                "case_index": 25,
+                "entry_index": 0,
+                "kind": "send",
+                "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+                "id": "official_case_25_send_00__repeated_key_unique_outpoint"
+            },
+            "inputs": [
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 0,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149d9e24f9fab4e35bf1a6df4b46cb533296ac0792",
+                    "script_sig": "",
+                    "txinwitness": "024730440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea366012102557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "30440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea36601",
+                        "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb",
+                    "pubkey": null
+                },
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 1,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149860538b5575962776ed0814ae222c7d60c72d7b",
+                    "script_sig": "",
+                    "txinwitness": "0247304402204586a68e1d97dd3c6928e3622799859f8c3b20c3c670cf654cc905c9be29fdb7022043fbcde1689f3f4045e8816caf6163624bd19e62e4565bc99f95c533e599782c012103557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "304402204586a68e1d97dd3c6928e3622799859f8c3b20c3c670cf654cc905c9be29fdb7022043fbcde1689f3f4045e8816caf6163624bd19e62e4565bc99f95c533e599782c01",
+                        "03557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "592095f44bb766d5cfe20bda71f9575ed2df6b9fb9addc7e5fdffe0923841456",
+                    "pubkey": null
+                },
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 2,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149d9e24f9fab4e35bf1a6df4b46cb533296ac0792",
+                    "script_sig": "",
+                    "txinwitness": "024730440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea366012102557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "30440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea36601",
+                        "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb",
+                    "pubkey": null
+                }
+            ],
+            "recipient_groups": [
+                {
+                    "scan_pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+                    "spend_pubkey": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+                    "count": 1
+                }
+            ]
+        });
+
+        let actual_value = serde_json::from_str::<Value>(
+            &run_request_json(&request.to_string()).expect("request should succeed"),
+        )
+        .expect("actual response should be valid JSON");
+        assert_eq!(
+            actual_value["semantic_status"],
+            Value::String("ok".to_owned())
+        );
+        assert_eq!(
+            actual_value["input_private_key_sum"],
+            Value::String(
+                "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb".to_owned()
+            )
+        );
+        assert_eq!(
+            actual_value["acceptable_output_sets"][0][0],
+            Value::String(
+                "bf300962adaaf21b58cf043d91ff46661b2688eeaaf753fe6ee8b642de3b715f".to_owned()
+            )
         );
     }
 

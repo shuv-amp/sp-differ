@@ -318,6 +318,7 @@ dependencies = [
  "serde",
  "serde_json",
  "silent-payments",
+ "silent-payments-bdk-sp",
 ]
 
 [[package]]

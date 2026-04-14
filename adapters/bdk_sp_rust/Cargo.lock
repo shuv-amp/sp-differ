@@ -21,7 +21,7 @@ dependencies = [
 [[package]]
 name = "bdk_sp"
 version = "0.1.0"
-source = "git+https://github.com/bitcoindevkit/bdk-sp.git#2f28d19581202d46fd0b30c35b6ae1cc45e37ce5"
+source = "git+https://github.com/bitcoindevkit/bdk-sp.git#6f3e345696aa34fc1e21c9cfe2cf1722addd89bc"
 dependencies = [
  "bitcoin",
 ]

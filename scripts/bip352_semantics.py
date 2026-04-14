@@ -25,6 +25,14 @@ INPUT_TYPE_CODES = {
 }
 
 
+def _silent_payment_hrp(network: str) -> str:
+    if network == "mainnet":
+        return "sp"
+    if network in {"testnet", "regtest"}:
+        return "tsp"
+    raise RuntimeError("unsupported network: {}".format(network))
+
+
 def build_case_id(case_index: int, kind: str, entry_index: int) -> str:
     return "official_case_{:02d}_{}_{:02d}".format(case_index, kind, entry_index)
 
@@ -220,6 +228,7 @@ def derive_receive_semantics(
     case: CaseV2,
     source: Dict[str, Any],
     detailed_outputs_available: bool,
+    network: str = "mainnet",
 ) -> Dict[str, Any]:
     vins = build_vins(reference_module, case)
     outpoints = [vin.outpoint for vin in vins]
@@ -236,13 +245,14 @@ def derive_receive_semantics(
     b_spend = reference_module.Scalar.from_bytes_checked(bytes(case.receiver_keys.spend_privkey))
     b_scan_ge = b_scan * reference_module.G
     b_spend_ge = b_spend * reference_module.G
+    hrp = _silent_payment_hrp(network)
     addresses = [
-        reference_module.encode_silent_payment_address(b_scan_ge, b_spend_ge, hrp="sp")
+        reference_module.encode_silent_payment_address(b_scan_ge, b_spend_ge, hrp=hrp)
     ]
     for label in case.labels:
         addresses.append(
             reference_module.create_labeled_silent_payment_address(
-                b_scan, b_spend_ge, int(label), hrp="sp"
+                b_scan, b_spend_ge, int(label), hrp=hrp
             )
         )
 

@@ -51,6 +51,7 @@ def _run_reference(reference_module, request: Dict[str, Any]) -> Dict[str, Any]:
             case,
             normalized_request["source"],
             detailed_outputs_available=bool(hints.get("detailed_outputs_required", True)),
+            network=normalized_request["network"],
         )
     return validate_semantic_result(result)
 

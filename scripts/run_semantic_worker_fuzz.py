@@ -132,6 +132,7 @@ def _run_reference(reference_module, request: Dict[str, Any]) -> Tuple[str, Opti
                 case,
                 normalized_request["source"],
                 detailed_outputs_available=detailed_outputs_available,
+                network=normalized_request["network"],
             )
         return "success", validate_semantic_result(result), None
     except Exception as exc:

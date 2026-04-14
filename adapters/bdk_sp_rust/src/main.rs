@@ -6,7 +6,7 @@ use bdk_sp::bitcoin::{
 use bdk_sp::compute_shared_secret;
 use bdk_sp::encoding::SilentPaymentCode;
 use bdk_sp::receive::extract_pubkey;
-use bdk_sp::send::{create_silentpayment_partial_secret, create_silentpayment_scriptpubkeys};
+use bdk_sp::send::create_silentpayment_scriptpubkeys;
 use bdk_sp::SpInputs;
 use hex::{decode as hex_decode, encode as hex_encode};
 use serde::{Deserialize, Serialize};
@@ -94,7 +94,6 @@ struct FoundOutput {
 
 struct EligibleSendInput {
     public_key: PublicKey,
-    script_pubkey: ScriptBuf,
     is_taproot: bool,
     privkey: SecretKey,
 }
@@ -256,46 +255,7 @@ fn derive_send_semantics(request: &AdapterRequest) -> Result<Value> {
     }
 
     let recipients = build_recipient_list(groups, request.network.as_str())?;
-    let mut smallest = request
-        .inputs
-        .iter()
-        .map(|input| {
-            let mut txid_bytes = hex_decode(&input.outpoint_txid).map_err(|e| e.to_string())?;
-            if txid_bytes.len() != 32 {
-                return Err(format!("invalid txid length: {}", input.outpoint_txid));
-            }
-            txid_bytes.reverse();
-            let mut outpoint = [0u8; 36];
-            outpoint[..32].copy_from_slice(&txid_bytes);
-            outpoint[32..].copy_from_slice(&input.outpoint_vout.to_le_bytes());
-            Ok(outpoint)
-        })
-        .collect::<Result<Vec<_>>>()?;
-    smallest.sort_unstable();
-    let partial_secret = create_silentpayment_partial_secret(
-        &smallest
-            .first()
-            .ok_or_else(|| "no outpoints provided".to_owned())
-            .copied()?,
-        &eligible
-            .iter()
-            .map(|entry| {
-                let key = if entry.is_taproot {
-                    let (_, parity) = entry.privkey.x_only_public_key(&secp);
-                    if parity == Parity::Odd {
-                        entry.privkey.negate()
-                    } else {
-                        entry.privkey
-                    }
-                } else {
-                    entry.privkey
-                };
-                (entry.script_pubkey.clone(), key)
-            })
-            .collect::<Vec<_>>(),
-    )
-    .map_err(|e| e.to_string())?;
-
+    let partial_secret = derive_partial_secret(&a_sum, &input_hash)?;
     let outputs = create_silentpayment_scriptpubkeys(partial_secret, &recipients);
     let mut output_set = BTreeSet::new();
     for values in outputs.values() {
@@ -461,7 +421,6 @@ fn collect_send_inputs(request: &AdapterRequest) -> Result<Vec<EligibleSendInput
             .map_err(|e| e.to_string())?;
         eligible.push(EligibleSendInput {
             public_key,
-            script_pubkey: prevout.script_pubkey,
             is_taproot: matches!(kind, SpInputs::Tr),
             privkey,
         });
@@ -614,6 +573,13 @@ fn derive_tweak_point(
     a_sum
         .mul_tweak(secp, &Scalar::from(tweak))
         .map_err(|e| format!("failed to derive tweak point: {}", e))
+}
+
+fn derive_partial_secret(a_sum: &SecretKey, input_hash: &[u8; 32]) -> Result<SecretKey> {
+    let tweak = SecretKey::from_slice(input_hash).map_err(|e| e.to_string())?;
+    a_sum
+        .mul_tweak(&Scalar::from(tweak))
+        .map_err(|e| e.to_string())
 }
 
 fn build_recipient_list(
@@ -777,23 +743,19 @@ fn sum_input_secret_keys(
     if input_keys.is_empty() {
         return Err("no_eligible_inputs".to_owned());
     }
-    let mut normalized = Vec::with_capacity(input_keys.len());
+    let mut acc: Option<SecretKey> = None;
     for (key, is_taproot) in input_keys {
-        let (_, parity) = key.x_only_public_key(secp);
-        if *is_taproot && parity == Parity::Odd {
-            normalized.push(key.negate());
+        let normalized = if *is_taproot && key.x_only_public_key(secp).1 == Parity::Odd {
+            key.negate()
         } else {
-            normalized.push(*key);
-        }
+            *key
+        };
+        acc = match acc {
+            Some(current) => current.add_tweak(&Scalar::from(normalized)).ok(),
+            None => Some(normalized),
+        };
     }
-    let mut iter = normalized.into_iter();
-    let mut acc = iter.next().ok_or_else(|| "no_eligible_inputs".to_owned())?;
-    for key in iter {
-        acc = acc
-            .add_tweak(&Scalar::from(key))
-            .map_err(|_| "zero_scalar".to_owned())?;
-    }
-    Ok(acc)
+    acc.ok_or_else(|| "zero_scalar".to_owned())
 }
 
 fn tagged_hash(tag: &str, message: &[u8]) -> [u8; 32] {
@@ -808,6 +770,97 @@ fn tagged_hash(tag: &str, message: &[u8]) -> [u8; 32] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn send_repeated_key_unique_outpoint_succeeds() {
+        let request = serde_json::json!({
+            "semantic_adapter_request_version": 1,
+            "case_format_version": 2,
+            "kind": "send",
+            "network": "mainnet",
+            "silent_payment_version": 0,
+            "source": {
+                "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8",
+                "case_index": 25,
+                "entry_index": 0,
+                "kind": "send",
+                "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+                "id": "official_case_25_send_00__repeated_key_unique_outpoint"
+            },
+            "inputs": [
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 0,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149d9e24f9fab4e35bf1a6df4b46cb533296ac0792",
+                    "script_sig": "",
+                    "txinwitness": "024730440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea366012102557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "30440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea36601",
+                        "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb",
+                    "pubkey": null
+                },
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 1,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149860538b5575962776ed0814ae222c7d60c72d7b",
+                    "script_sig": "",
+                    "txinwitness": "0247304402204586a68e1d97dd3c6928e3622799859f8c3b20c3c670cf654cc905c9be29fdb7022043fbcde1689f3f4045e8816caf6163624bd19e62e4565bc99f95c533e599782c012103557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "304402204586a68e1d97dd3c6928e3622799859f8c3b20c3c670cf654cc905c9be29fdb7022043fbcde1689f3f4045e8816caf6163624bd19e62e4565bc99f95c533e599782c01",
+                        "03557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "592095f44bb766d5cfe20bda71f9575ed2df6b9fb9addc7e5fdffe0923841456",
+                    "pubkey": null
+                },
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 2,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149d9e24f9fab4e35bf1a6df4b46cb533296ac0792",
+                    "script_sig": "",
+                    "txinwitness": "024730440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea366012102557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "30440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea36601",
+                        "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb",
+                    "pubkey": null
+                }
+            ],
+            "recipient_groups": [
+                {
+                    "scan_pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+                    "spend_pubkey": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+                    "count": 1
+                }
+            ]
+        });
+
+        let actual_value = serde_json::from_str::<Value>(
+            &run_request_json(&request.to_string()).expect("request should succeed"),
+        )
+        .expect("actual response should be valid JSON");
+        assert_eq!(
+            actual_value["semantic_status"],
+            Value::String("ok".to_owned())
+        );
+        assert_eq!(
+            actual_value["input_private_key_sum"],
+            Value::String(
+                "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb".to_owned()
+            )
+        );
+        assert_eq!(
+            actual_value["acceptable_output_sets"][0][0],
+            Value::String(
+                "bf300962adaaf21b58cf043d91ff46661b2688eeaaf753fe6ee8b642de3b715f".to_owned()
+            )
+        );
+    }
 
     #[test]
     fn receive_rejects_malformed_output_pubkeys() {
