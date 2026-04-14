@@ -8,9 +8,7 @@ use silentpayments::utils::receiving::{
     calculate_ecdh_shared_secret as calculate_receive_shared_secret, calculate_tweak_data,
     get_pubkey_from_input, is_p2tr,
 };
-use silentpayments::utils::sending::{
-    calculate_ecdh_shared_secret as calculate_send_shared_secret, calculate_partial_secret,
-};
+use silentpayments::utils::sending::calculate_ecdh_shared_secret as calculate_send_shared_secret;
 use silentpayments::{secp256k1, Network, SilentPaymentAddress};
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::{self, Read};
@@ -249,7 +247,7 @@ fn derive_send_semantics(request: &AdapterRequest) -> Result<Value> {
         }));
     }
 
-    let partial_secret = calculate_partial_secret(&eligible_keys, &outpoints_data)
+    let partial_secret = calculate_partial_secret(&a_sum, input_hash)
         .map_err(|e| format!("failed to calculate partial secret: {}", e))?;
     let mut sender_shared_secrets = unique_scan_pubkeys(groups)
         .into_iter()
@@ -659,23 +657,22 @@ fn sum_input_secret_keys(
     if input_keys.is_empty() {
         return Err("no_eligible_inputs".to_owned());
     }
-    let mut normalized = Vec::with_capacity(input_keys.len());
+    let mut acc: Option<secp256k1::SecretKey> = None;
     for (key, is_taproot) in input_keys {
-        let (_, parity) = key.x_only_public_key(secp);
-        if *is_taproot && parity == secp256k1::Parity::Odd {
-            normalized.push(key.negate());
+        let normalized = if *is_taproot && key.x_only_public_key(secp).1 == secp256k1::Parity::Odd {
+            key.negate()
         } else {
-            normalized.push(*key);
-        }
+            *key
+        };
+        // Intermediate cancellation is representable mathematically even though zero is not a
+        // valid secret key. Keep summing from that zero state and only reject if the final
+        // modular sum is zero.
+        acc = match acc {
+            Some(current) => current.add_tweak(&normalized.into()).ok(),
+            None => Some(normalized),
+        };
     }
-    let mut iter = normalized.into_iter();
-    let mut acc = iter.next().ok_or_else(|| "no_eligible_inputs".to_owned())?;
-    for key in iter {
-        acc = acc
-            .add_tweak(&key.into())
-            .map_err(|_| "zero_scalar".to_owned())?;
-    }
-    Ok(acc)
+    acc.ok_or_else(|| "zero_scalar".to_owned())
 }
 
 fn calculate_input_hash(
@@ -707,6 +704,15 @@ fn calculate_input_hash(
     Ok(tagged_hash("BIP0352/Inputs", &message))
 }
 
+fn calculate_partial_secret(
+    a_sum: &secp256k1::SecretKey,
+    input_hash: [u8; 32],
+) -> std::result::Result<secp256k1::SecretKey, secp256k1::Error> {
+    let tweak = secp256k1::Scalar::from_be_bytes(input_hash)
+        .expect("tagged hashes should be valid secp256k1 scalars");
+    a_sum.mul_tweak(&tweak)
+}
+
 fn tagged_hash(tag: &str, message: &[u8]) -> [u8; 32] {
     let tag_hash = sha256::Hash::hash(tag.as_bytes());
     let mut engine = sha256::Hash::engine();
@@ -719,6 +725,29 @@ fn tagged_hash(tag: &str, message: &[u8]) -> [u8; 32] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn secret_key(hex_value: &str) -> secp256k1::SecretKey {
+        secp256k1::SecretKey::from_slice(
+            &hex_decode(hex_value).expect("test scalar should be valid hex"),
+        )
+        .expect("test scalar should be a valid secret key")
+    }
+
+    #[test]
+    fn sum_input_secret_keys_allows_intermediate_zero_when_final_sum_is_nonzero() {
+        let secp = secp256k1::Secp256k1::new();
+        let a = secret_key("a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb");
+        let minus_a =
+            secret_key("592095f44bb766d5cfe20bda71f9575ed2df6b9fb9addc7e5fdffe0923841456");
+        let bad_order = [(a, false), (minus_a, false), (a, false)];
+        let good_order = [(a, false), (a, false), (minus_a, false)];
+
+        let bad_order_sum = sum_input_secret_keys(&bad_order, &secp).expect("sum should succeed");
+        let good_order_sum = sum_input_secret_keys(&good_order, &secp).expect("sum should succeed");
+
+        assert_eq!(bad_order_sum.secret_bytes(), a.secret_bytes());
+        assert_eq!(good_order_sum.secret_bytes(), a.secret_bytes());
+    }
 
     #[test]
     fn grouped_recipient_limit_counts_shared_scan_pubkeys() {
@@ -758,5 +787,89 @@ mod tests {
         ))
         .expect_err("request should fail");
         assert_eq!(error, "malformed public key");
+    }
+
+    #[test]
+    fn send_repeated_key_unique_outpoint_succeeds() {
+        let request = serde_json::json!({
+            "semantic_adapter_request_version": 1,
+            "case_format_version": 2,
+            "kind": "send",
+            "network": "mainnet",
+            "silent_payment_version": 0,
+            "source": {
+                "upstream_commit": "805c9b54f6d38f644d1f9c3ce871e2ea3df1f7d8",
+                "case_index": 25,
+                "entry_index": 0,
+                "kind": "send",
+                "comment": "Input keys sum up to zero / point at infinity: sending fails, receiver skips tx",
+                "id": "official_case_25_send_00__repeated_key_unique_outpoint"
+            },
+            "inputs": [
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 0,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149d9e24f9fab4e35bf1a6df4b46cb533296ac0792",
+                    "script_sig": "",
+                    "txinwitness": "024730440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea366012102557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "30440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea36601",
+                        "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb",
+                    "pubkey": null
+                },
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 1,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149860538b5575962776ed0814ae222c7d60c72d7b",
+                    "script_sig": "",
+                    "txinwitness": "0247304402204586a68e1d97dd3c6928e3622799859f8c3b20c3c670cf654cc905c9be29fdb7022043fbcde1689f3f4045e8816caf6163624bd19e62e4565bc99f95c533e599782c012103557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "304402204586a68e1d97dd3c6928e3622799859f8c3b20c3c670cf654cc905c9be29fdb7022043fbcde1689f3f4045e8816caf6163624bd19e62e4565bc99f95c533e599782c01",
+                        "03557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "592095f44bb766d5cfe20bda71f9575ed2df6b9fb9addc7e5fdffe0923841456",
+                    "pubkey": null
+                },
+                {
+                    "outpoint_txid": "3a286147b25e16ae80aff406f2673c6e565418c40f45c071245cdebc8a94174e",
+                    "outpoint_vout": 2,
+                    "input_type": "p2wpkh",
+                    "prevout_script_pubkey": "00149d9e24f9fab4e35bf1a6df4b46cb533296ac0792",
+                    "script_sig": "",
+                    "txinwitness": "024730440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea366012102557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975",
+                    "txinwitness_stack": [
+                        "30440220085003179ce1a3a88ce0069aa6ea045e140761ab88c22a26ae2a8cfe983a6e4602204a8a39940f0735c8a4424270ac8da65240c261ab3fda9272f6d6efbf9cfea36601",
+                        "02557ef3e55b0a52489b4454c1169e06bdea43687a69c1f190eb50781644ab6975"
+                    ],
+                    "privkey": "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb",
+                    "pubkey": null
+                }
+            ],
+            "recipient_groups": [
+                {
+                    "scan_pubkey": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+                    "spend_pubkey": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+                    "count": 1
+                }
+            ]
+        });
+
+        let response =
+            run_request_json(&request.to_string()).expect("request should produce a response");
+        let decoded: Value = serde_json::from_str(&response).expect("response should be JSON");
+
+        assert_eq!(decoded["semantic_status"], "ok");
+        assert_eq!(
+            decoded["input_private_key_sum"],
+            "a6df6a0bb448992a301df4258e06a89fe7cf7146f59ac3bd5ff26083acb22ceb"
+        );
+        assert_eq!(
+            decoded["acceptable_output_sets"][0][0],
+            "bf300962adaaf21b58cf043d91ff46661b2688eeaaf753fe6ee8b642de3b715f"
+        );
     }
 }

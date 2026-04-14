@@ -107,6 +107,7 @@ def main() -> int:
                 case,
                 request["source"],
                 detailed_outputs_available=True,
+                network=request["network"],
             )
             output = _compose_receive_result(reference_result, helper_result)
         json.dump(validate_semantic_result(output), sys.stdout, sort_keys=True)

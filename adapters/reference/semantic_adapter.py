@@ -32,6 +32,7 @@ def main() -> int:
                 case,
                 request["source"],
                 detailed_outputs_available=True,
+                network=request["network"],
             )
         json.dump(result, sys.stdout, sort_keys=True)
         sys.stdout.write("\n")

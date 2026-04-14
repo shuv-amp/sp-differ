@@ -55,25 +55,9 @@
       "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex"
     },
     {
-      "id": "official_case_00_receive_00__regtest",
-      "kind": "receive",
-      "path": "valid/official_case_00_receive_00__regtest.json",
-      "source": "derived-v2-coverage-variant",
-      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex",
-      "variant_of": "official_case_00_receive_00"
-    },
-    {
       "id": "official_case_00_receive_00__testnet",
       "kind": "receive",
       "path": "valid/official_case_00_receive_00__testnet.json",
-      "source": "derived-v2-coverage-variant",
-      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex",
-      "variant_of": "official_case_00_receive_00"
-    },
-    {
-      "id": "official_case_00_receive_00__v1",
-      "kind": "receive",
-      "path": "valid/official_case_00_receive_00__v1.json",
       "source": "derived-v2-coverage-variant",
       "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_receive_00.hex",
       "variant_of": "official_case_00_receive_00"
@@ -97,14 +81,6 @@
       "id": "official_case_00_send_00__testnet",
       "kind": "send",
       "path": "valid/official_case_00_send_00__testnet.json",
-      "source": "derived-v2-coverage-variant",
-      "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex",
-      "variant_of": "official_case_00_send_00"
-    },
-    {
-      "id": "official_case_00_send_00__v1",
-      "kind": "send",
-      "path": "valid/official_case_00_send_00__v1.json",
       "source": "derived-v2-coverage-variant",
       "source_case_path": "tests/vectors/bip352/derived/v2/official_case_00_send_00.hex",
       "variant_of": "official_case_00_send_00"
@@ -494,20 +470,6 @@
       "id": "official_case_25_send_00__repeated_key_unique_outpoint",
       "kind": "send",
       "path": "valid/regression_official_case_25_send_00__repeated_key_unique_outpoint.json",
-      "source": "semantic-regression",
-      "source_request_path": "tests/regressions/semantic/cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json"
-    },
-    {
-      "id": "official_case_25_send_00__repeated_key_unique_outpoint__silent_payments",
-      "kind": "send",
-      "path": "valid/regression_official_case_25_send_00__repeated_key_unique_outpoint__silent_payments.json",
-      "source": "semantic-regression",
-      "source_request_path": "tests/regressions/semantic/cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json"
-    },
-    {
-      "id": "official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust",
-      "kind": "send",
-      "path": "valid/regression_official_case_25_send_00__repeated_key_unique_outpoint__spdk_rust.json",
       "source": "semantic-regression",
       "source_request_path": "tests/regressions/semantic/cases/official_case_25_send_00__repeated_key_unique_outpoint/request.json"
     },

@@ -8,6 +8,7 @@ name = "sp_differ_semantic_worker_silent_payments"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+bdk_sp = { package = "silent-payments-bdk-sp", version = "0.1.1" }
 bitcoin = "0.32"
 hex = "0.4"
 libc = "0.2"
