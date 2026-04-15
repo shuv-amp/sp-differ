@@ -2,22 +2,19 @@
 # SPDX-License-Identifier: MIT
 """Smoke-test the public claim-discipline checker."""
 
-import subprocess
-import sys
+import importlib.util
 import tempfile
+import os
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+MODULE_PATH = ROOT / "scripts" / "check_claim_discipline.py"
 
-
-def _run(path):
-    return subprocess.run(
-        [sys.executable, "scripts/check_claim_discipline.py", str(path)],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+_SPEC = importlib.util.spec_from_file_location("check_claim_discipline", MODULE_PATH)
+assert _SPEC is not None and _SPEC.loader is not None
+MODULE = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(MODULE)
 
 
 def main():
@@ -39,17 +36,41 @@ def main():
             encoding="utf-8",
         )
 
-        clean_result = _run(clean)
-        if clean_result.returncode != 0:
-            raise SystemExit("expected clean file to pass:\n{}".format(clean_result.stdout + clean_result.stderr))
+        clean_failures = MODULE.collect_failures([clean])
+        if clean_failures:
+            raise SystemExit("expected clean file to pass")
 
-        flagged_result = _run(flagged)
-        if flagged_result.returncode == 0:
+        flagged_failures = MODULE.collect_failures([flagged])
+        if not flagged_failures:
             raise SystemExit("expected flagged file to fail")
-        if "unsupported_superlative" not in flagged_result.stdout:
+        flagged_text = "\n".join(
+            "{}:{}:{}:{}".format(path, finding["line"], finding["rule"], finding["token"])
+            for path, findings in flagged_failures
+            for finding in findings
+        )
+        if "unsupported_superlative" not in flagged_text:
             raise SystemExit("missing unsupported_superlative finding")
-        if "future_tense_claim" not in flagged_result.stdout:
+        if "future_tense_claim" not in flagged_text:
             raise SystemExit("missing future_tense_claim finding")
+
+        outside_root = Path(tempfile.mkdtemp(prefix="sp_differ_claims_outside_"))
+        try:
+            outside = outside_root / "outside.md"
+            outside.write_text("# outside\n\nThis is the best implementation overall.\n", encoding="utf-8")
+            linked_dir = tmp / "linked"
+            linked_dir.mkdir()
+            os.symlink(str(outside), str(linked_dir / "outside.md"))
+
+            try:
+                MODULE.collect_failures([linked_dir])
+            except ValueError as exc:
+                if "path escapes repository root" not in str(exc):
+                    raise SystemExit("missing repository-root escape failure")
+            else:
+                raise SystemExit("expected external symlink target to fail")
+        finally:
+            outside.unlink()
+            outside_root.rmdir()
 
     print("claim discipline smoke OK")
     return 0

@@ -2,14 +2,11 @@
 # SPDX-License-Identifier: MIT
 """Check repo-owned source comments for deferred-note markers and hype."""
 
-import argparse
-import os
 import re
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_STR = str(ROOT)
 
 
 DEFAULT_TARGETS = ["src", "workers", "scripts", "adapters", "tests/fixtures"]
@@ -48,29 +45,30 @@ def _should_skip(path: Path) -> bool:
 
 def _iter_files(targets):
     for raw_target in targets:
-        path = _resolve_repo_path(raw_target)
+        candidate = Path(raw_target)
+        if candidate.is_absolute():
+            try:
+                candidate = candidate.relative_to(ROOT)
+            except ValueError as exc:
+                raise ValueError("path escapes repository root: {}".format(raw_target)) from exc
+        if any(part == ".." for part in candidate.parts):
+            raise ValueError("path escapes repository root: {}".format(raw_target))
+        path = ROOT / candidate
+        if path.is_symlink():
+            raise ValueError("path escapes repository root: {}".format(raw_target))
         if not path.exists():
             raise FileNotFoundError("missing path: {}".format(path))
         if path.is_dir():
             for child in sorted(path.rglob("*")):
-                if child.is_file() and child.suffix in SOURCE_SUFFIXES and not _should_skip(child):
-                    yield child
+                if child.is_symlink():
+                    raise ValueError("path escapes repository root: {}".format(child))
+                if not child.is_file():
+                    continue
+                if child.suffix not in SOURCE_SUFFIXES or _should_skip(child):
+                    continue
+                yield child
         elif path.is_file() and path.suffix in SOURCE_SUFFIXES and not _should_skip(path):
             yield path
-
-
-def _resolve_repo_path(raw_target):
-    candidate = Path(raw_target)
-    if not candidate.is_absolute():
-        candidate = ROOT / candidate
-    resolved = Path(os.path.realpath(candidate))
-    try:
-        common = os.path.commonpath([ROOT_STR, str(resolved)])
-    except ValueError as exc:
-        raise ValueError("path escapes repository root: {}".format(raw_target)) from exc
-    if common != ROOT_STR:
-        raise ValueError("path escapes repository root: {}".format(raw_target))
-    return resolved
 
 
 def _scan_python(text: str):
@@ -127,13 +125,9 @@ def _scan_comments(path: Path, text: str):
     yield from _scan_c_like(text)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Check repo-owned source comments for deferred-note markers and hype")
-    parser.add_argument("paths", nargs="*", default=DEFAULT_TARGETS, help="Files or directories to scan")
-    args = parser.parse_args()
-
+def collect_failures(targets):
     failures = []
-    for path in _iter_files(args.paths):
+    for path in _iter_files(targets):
         text = path.read_text(encoding="utf-8")
         findings = []
         for line_no, comment_text in _scan_comments(path, text):
@@ -144,7 +138,11 @@ def main():
                 findings.append((line_no, rule_name, match.group(0), guidance))
         if findings:
             failures.append((path, findings))
+    return failures
 
+
+def main():
+    failures = collect_failures(DEFAULT_TARGETS)
     if failures:
         print("source comment discipline check failed")
         for path, findings in failures:

@@ -2,15 +2,11 @@
 # SPDX-License-Identifier: MIT
 """Fail on unsupported hype or unsupported future-tense wording in public-facing repo text."""
 
-import argparse
-import os
 import re
-import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ROOT_STR = str(ROOT)
 
 
 DEFAULT_TARGETS = [
@@ -54,29 +50,30 @@ CHECKS = [
 
 def _iter_files(targets):
     for raw_target in targets:
-        path = _resolve_repo_path(raw_target)
+        candidate = Path(raw_target)
+        if candidate.is_absolute():
+            try:
+                candidate = candidate.relative_to(ROOT)
+            except ValueError as exc:
+                raise ValueError("path escapes repository root: {}".format(raw_target)) from exc
+        if any(part == ".." for part in candidate.parts):
+            raise ValueError("path escapes repository root: {}".format(raw_target))
+        path = ROOT / candidate
+        if path.is_symlink():
+            raise ValueError("path escapes repository root: {}".format(raw_target))
         if not path.exists():
             raise FileNotFoundError("missing path: {}".format(path))
         if path.is_dir():
             for child in sorted(path.rglob("*")):
-                if child.is_file() and child.suffix in SCAN_SUFFIXES:
-                    yield child
+                if child.is_symlink():
+                    raise ValueError("path escapes repository root: {}".format(child))
+                if not child.is_file():
+                    continue
+                if child.suffix not in SCAN_SUFFIXES:
+                    continue
+                yield child
         elif path.suffix in SCAN_SUFFIXES:
             yield path
-
-
-def _resolve_repo_path(raw_target):
-    candidate = Path(raw_target)
-    if not candidate.is_absolute():
-        candidate = ROOT / candidate
-    resolved = Path(os.path.realpath(candidate))
-    try:
-        common = os.path.commonpath([ROOT_STR, str(resolved)])
-    except ValueError as exc:
-        raise ValueError("path escapes repository root: {}".format(raw_target)) from exc
-    if common != ROOT_STR:
-        raise ValueError("path escapes repository root: {}".format(raw_target))
-    return resolved
 
 
 def scan_text(text):
@@ -103,18 +100,18 @@ def scan_text(text):
     return findings
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Check repo text for unsupported claims and unsupported future-tense wording")
-    parser.add_argument("paths", nargs="*", default=DEFAULT_TARGETS, help="Files or directories to scan")
-    args = parser.parse_args()
-
+def collect_failures(targets):
     failures = []
-    for path in _iter_files(args.paths):
+    for path in _iter_files(targets):
         text = path.read_text(encoding="utf-8")
         findings = scan_text(text)
         if findings:
             failures.append((path, findings))
+    return failures
 
+
+def main():
+    failures = collect_failures(DEFAULT_TARGETS)
     if failures:
         print("claim discipline check failed")
         for path, findings in failures:
