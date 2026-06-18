@@ -8,7 +8,7 @@ name = "sp_differ_semantic_worker_bip352"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-bech32 = "0.11"
+bech32 = "0.12"
 bip352 = "0.1.0-alpha.3"
 bitcoin = "0.31"
 hex = "0.4"
