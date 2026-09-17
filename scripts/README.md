@@ -5,6 +5,7 @@ This folder contains small developer scripts for running vectors, fuzzing, and r
 Current scripts:
 - `../sp_differ_cli.py` is the public repo-local CLI for verification, reporting, and replay.
 - `parse_case.py` parses and validates a v1 or v2 case file and prints a summary.
+- `parse_case_smoke.py` checks valid fixtures, v2 round trips, malformed payload rejection, and explicit input formats.
 - `validate_output.py` validates a worker output payload against the v1 output format.
 - `runner_smoke.py` performs an end-to-end worker smoke check with a clear exit code.
 - `byte_worker_parity_smoke.py` drives both byte-worker shared libraries through the ABI and checks representative v1 enum parity.
